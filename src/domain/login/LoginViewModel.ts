@@ -36,10 +36,10 @@ export class LoginViewModel extends ViewModel<SegmentType, Options> {
     private _loginToken?: string;
     private _client: Client;
     private _loginOptions?: LoginOptions;
-    private _passwordLoginViewModel?: PasswordLoginViewModel;
-    private _startSSOLoginViewModel?: StartSSOLoginViewModel;
-    private _completeSSOLoginViewModel?: CompleteSSOLoginViewModel;
-    private _loadViewModel?: SessionLoadViewModel;
+    protected _passwordLoginViewModel?: PasswordLoginViewModel;
+    protected _startSSOLoginViewModel?: StartSSOLoginViewModel;
+    protected _completeSSOLoginViewModel?: CompleteSSOLoginViewModel;
+    protected _loadViewModel?: SessionLoadViewModel;
     private _loadViewModelSubscription?: () => void;
     private _homeserver: string;
     private _queriedHomeserver?: string;
