@@ -24,7 +24,7 @@ type Options = {
 } & BaseOptions;
 
 export class StartSSOLoginViewModel extends ViewModel{
-    private _sso?: SSOLoginHelper;
+    protected _sso?: SSOLoginHelper;
     private _isBusy = false;
 
     constructor(options: Options) {
