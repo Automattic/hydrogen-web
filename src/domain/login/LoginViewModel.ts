@@ -35,7 +35,7 @@ export class LoginViewModel extends ViewModel<SegmentType, Options> {
     private _ready: ReadyFn;
     private _loginToken?: string;
     private _client: Client;
-    private _loginOptions?: LoginOptions;
+    protected _loginOptions?: LoginOptions;
     protected _passwordLoginViewModel?: PasswordLoginViewModel;
     protected _startSSOLoginViewModel?: StartSSOLoginViewModel;
     protected _completeSSOLoginViewModel?: CompleteSSOLoginViewModel;
