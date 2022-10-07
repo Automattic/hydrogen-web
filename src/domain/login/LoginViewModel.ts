@@ -25,7 +25,7 @@ import {SegmentType} from "../navigation/index";
 
 import type {PasswordLoginMethod, SSOLoginHelper, TokenLoginMethod, ILoginMethod} from "../../matrix/login";
 
-type Options = {
+export type Options = {
     defaultHomeserver: string;
     ready: ReadyFn;
     loginToken?: string;
@@ -282,7 +282,7 @@ export class LoginViewModel extends ViewModel<SegmentType, Options> {
     }
 }
 
-type ReadyFn = (client: Client) => void;
+export type ReadyFn = (client: Client) => void;
 
 // TODO: move to Client.js when its converted to typescript.
 export type LoginOptions = {

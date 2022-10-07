@@ -19,7 +19,7 @@ import {Options as BaseOptions, ViewModel} from "../ViewModel";
 import type {LoginOptions} from "./LoginViewModel";
 
 
-type Options = {
+export type Options = {
     loginOptions: LoginOptions | undefined;
 } & BaseOptions;
 
