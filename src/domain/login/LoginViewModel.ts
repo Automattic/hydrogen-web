@@ -121,7 +121,7 @@ export class LoginViewModel extends ViewModel<SegmentType, Options> {
         }
     }
 
-    private _showPasswordLogin(): void {
+    protected _showPasswordLogin(): void {
         this._passwordLoginViewModel = this.track(new PasswordLoginViewModel(
             this.childOptions({
                 loginOptions: this._loginOptions,
@@ -130,7 +130,7 @@ export class LoginViewModel extends ViewModel<SegmentType, Options> {
         this.emitChange("passwordLoginViewModel");
     }
 
-    private _showSSOLogin(): void {
+    protected _showSSOLogin(): void {
         this._startSSOLoginViewModel = this.track(
             new StartSSOLoginViewModel(this.childOptions({loginOptions: this._loginOptions}))
         );
