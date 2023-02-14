@@ -502,7 +502,7 @@ export class Client {
     }
 }
 
-class AccountSetup {
+export class AccountSetup {
     constructor(encryptedDehydratedDevice, finishStage) {
         this._encryptedDehydratedDevice = encryptedDehydratedDevice;
         this._dehydratedDevice = undefined;

@@ -34,7 +34,6 @@ export class SessionLoadViewModel extends ViewModel {
         this._error = null;
         this.backUrl = this.urlRouter.urlForSegment("session", true);
         this._accountSetupViewModel = undefined;
-
     }
 
     async start() {
@@ -46,7 +45,7 @@ export class SessionLoadViewModel extends ViewModel {
             this.emitChange("loading");
             this._waitHandle = this._sessionPool.loadStatus(this._sessionId).waitFor(s => {
                 if (s === LoadStatus.AccountSetup) {
-                    this._accountSetupViewModel = new AccountSetupViewModel(this.childOptions({accountSetup: this._client.accountSetup}));
+                    this._accountSetupViewModel = new AccountSetupViewModel(this.childOptions({accountSetup: this._sessionPool.accountSetup(this._sessionId)}));
                 } else {
                     this._accountSetupViewModel = undefined;
                 }
