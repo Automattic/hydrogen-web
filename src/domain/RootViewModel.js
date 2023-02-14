@@ -163,6 +163,7 @@ export class RootViewModel extends ViewModel {
         sessionPool.startWithExistingSession(sessionId);
         this._setSection(() => {
             this._sessionLoadViewModel = new SessionLoadViewModel(this.childOptions({
+                sessionId,
                 sessionPool: sessionPool,
                 ready: client => this._showSession(client)
             }));

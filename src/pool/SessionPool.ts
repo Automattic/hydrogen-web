@@ -10,7 +10,7 @@ export class SessionPool {
     }
 
     // TODO REFACTOR: Remove this method since client should not be exposed.
-    get client(): Client {
+    client(sessionId: string): Client {
         return this._client;
     }
 

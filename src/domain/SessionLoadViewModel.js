@@ -22,9 +22,9 @@ import {ViewModel} from "./ViewModel";
 export class SessionLoadViewModel extends ViewModel {
     constructor(options) {
         super(options);
-        const {sessionPool, ready, homeserver, deleteSessionOnCancel} = options;
+        const {sessionId, sessionPool, ready, homeserver, deleteSessionOnCancel} = options;
         // TODO REFACTOR: Remove this._client, all operations should be done through the session pool.
-        this._client = sessionPool.client;
+        this._client = sessionPool.client(sessionId);
         this._ready = ready;
         this._homeserver = homeserver;
         this._deleteSessionOnCancel = deleteSessionOnCancel;
