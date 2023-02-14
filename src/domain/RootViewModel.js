@@ -22,7 +22,7 @@ import {LogoutViewModel} from "./LogoutViewModel";
 import {ForcedLogoutViewModel} from "./ForcedLogoutViewModel";
 import {SessionPickerViewModel} from "./SessionPickerViewModel.js";
 import {ViewModel} from "./ViewModel";
-import {SessionPool} from "../pool/SessionPool";
+import {ClientPool} from "../pool/ClientPool";
 
 export class RootViewModel extends ViewModel {
     constructor(options) {
@@ -159,12 +159,12 @@ export class RootViewModel extends ViewModel {
     }
 
     _showSessionLoader(sessionId) {
-        const sessionPool = new SessionPool(this.platform, this.features);
-        sessionPool.startWithExistingSession(sessionId);
+        const clientPool = new ClientPool(this.platform, this.features);
+        clientPool.startWithExistingSession(sessionId);
         this._setSection(() => {
             this._sessionLoadViewModel = new SessionLoadViewModel(this.childOptions({
                 sessionId,
-                sessionPool: sessionPool,
+                clientPool: clientPool,
                 ready: client => this._showSession(client)
             }));
             this._sessionLoadViewModel.start();

@@ -6,7 +6,7 @@ import {SyncStatus} from "../matrix/Sync";
 
 type SessionId = string;
 
-export class SessionPool {
+export class ClientPool {
     private readonly _clients: Map<SessionId, Client> = new Map;
     private readonly _platform: Platform;
     private readonly _features: FeatureSet;
