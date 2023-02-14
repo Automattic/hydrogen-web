@@ -69,7 +69,7 @@ export class SessionLoadViewModel extends ViewModel {
             // much like we will once you are in the app. Probably a good idea
 
             // did it finish or get stuck at LoginFailed or Error?
-            const loadStatus = this._client.loadStatus.get();
+            const loadStatus = this._sessionPool(this._sessionId).loadStatus.get();
             const loadError = this._client.loadError;
             if (loadStatus === LoadStatus.FirstSync || loadStatus === LoadStatus.Ready) {
                 const client = this._client;
@@ -108,7 +108,7 @@ export class SessionLoadViewModel extends ViewModel {
     // to show a spinner or not
     get loading() {
         const client = this._client;
-        if (client && client.loadStatus.get() === LoadStatus.AccountSetup) {
+        if (client && this._sessionPool(this._sessionId).loadStatus.get() === LoadStatus.AccountSetup) {
             return false;
         }
         return this._loading;
@@ -117,13 +117,13 @@ export class SessionLoadViewModel extends ViewModel {
     get loadLabel() {
         const client = this._client;
         const error = this._getError();
-        if (error || (client && client.loadStatus.get() === LoadStatus.Error)) {
+        if (error || (client && this._sessionPool(this._sessionId).loadStatus.get() === LoadStatus.Error)) {
             return `Something went wrong: ${error && error.message}.`;
         }
 
         // Statuses related to login are handled by respective login view models
         if (client) {
-            switch (client.loadStatus.get()) {
+            switch (this._sessionPool(this._sessionId).loadStatus.get()) {
                 case LoadStatus.QueryAccount:
                     return `Querying account encryption setup…`;
                 case LoadStatus.AccountSetup:
@@ -135,7 +135,7 @@ export class SessionLoadViewModel extends ViewModel {
                 case LoadStatus.FirstSync:
                     return `Getting your conversations from the server…`;
                 default:
-                    return this._client.loadStatus.get();
+                    return this._sessionPool(this._sessionId).loadStatus.get();
             }
         }
 
