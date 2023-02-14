@@ -23,6 +23,8 @@ export class SessionLoadViewModel extends ViewModel {
     constructor(options) {
         super(options);
         const {sessionId, sessionPool, ready, homeserver, deleteSessionOnCancel} = options;
+        this._sessionId = sessionId;
+        this._sessionPool = sessionPool;
         // TODO REFACTOR: Remove this._client, all operations should be done through the session pool.
         this._client = sessionPool.client(sessionId);
         this._ready = ready;
@@ -42,7 +44,7 @@ export class SessionLoadViewModel extends ViewModel {
         try {
             this._loading = true;
             this.emitChange("loading");
-            this._waitHandle = this._client.loadStatus.waitFor(s => {
+            this._waitHandle = this._sessionPool.loadStatus(this._sessionId).waitFor(s => {
                 if (s === LoadStatus.AccountSetup) {
                     this._accountSetupViewModel = new AccountSetupViewModel(this.childOptions({accountSetup: this._client.accountSetup}));
                 } else {
