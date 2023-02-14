@@ -38,6 +38,10 @@ export class SessionPool {
         return this.client(sessionId).loadStatus;
     }
 
+    loadError(sessionId: SessionId): Error {
+        return this.client(sessionId).loadError;
+    }
+
     accountSetup(sessionId: SessionId): AccountSetup {
         return this.client(sessionId).accountSetup;
     }

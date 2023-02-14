@@ -70,7 +70,7 @@ export class SessionLoadViewModel extends ViewModel {
 
             // did it finish or get stuck at LoginFailed or Error?
             const loadStatus = this._sessionPool(this._sessionId).loadStatus.get();
-            const loadError = this._client.loadError;
+            const loadError = this._sessionPool(this._sessionId).loadError;
             if (loadStatus === LoadStatus.FirstSync || loadStatus === LoadStatus.Ready) {
                 const client = this._client;
                 // session container is ready,
@@ -143,7 +143,7 @@ export class SessionLoadViewModel extends ViewModel {
     }
 
     _getError() {
-        return this._error || this._client?.loadError; 
+        return this._error || this._sessionPool(this._sessionId).loadError;
     }
 
     get hasError() {
