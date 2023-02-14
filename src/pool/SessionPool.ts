@@ -2,6 +2,7 @@ import {Platform} from "../platform/web/Platform";
 import {FeatureSet} from "../features";
 import {AccountSetup, Client, LoadStatus} from "../matrix/Client";
 import {ObservableValue} from "../observable/value";
+import {SyncStatus} from "../matrix/Sync";
 
 type SessionId = string;
 
@@ -39,5 +40,9 @@ export class SessionPool {
 
     accountSetup(sessionId: SessionId): AccountSetup {
         return this.client(sessionId).accountSetup;
+    }
+
+    syncStatus(sessionId: SessionId): ObservableValue<SyncStatus> {
+        return this.client(sessionId).sync.status;
     }
 }

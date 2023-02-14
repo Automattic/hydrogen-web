@@ -52,7 +52,7 @@ export class SessionLoadViewModel extends ViewModel {
                 this.emitChange("loadLabel");
                 // wait for initial sync, but not catchup sync
                 const isCatchupSync = s === LoadStatus.FirstSync &&
-                    this._client.sync.status.get() === SyncStatus.CatchupSync;
+                    this._sessionPool.syncStatus(this._sessionId).get() === SyncStatus.CatchupSync;
                 return isCatchupSync ||
                     s === LoadStatus.LoginFailed ||
                     s === LoadStatus.Error ||
