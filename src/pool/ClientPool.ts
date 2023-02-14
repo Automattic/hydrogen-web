@@ -1,8 +1,7 @@
 import {Platform} from "../platform/web/Platform";
 import {FeatureSet} from "../features";
-import {AccountSetup, Client, LoadStatus} from "../matrix/Client";
-import {ObservableValue} from "../observable/value";
-import {SyncStatus} from "../matrix/Sync";
+import {Client} from "../matrix/Client";
+import {ClientProxy} from "./ClientProxy";
 
 export type SessionId = string;
 
@@ -16,37 +15,18 @@ export class ClientPool {
         this._features = features;
     }
 
-    // TODO REFACTOR: Make this method private since client should not be exposed.
-    client(sessionId: SessionId): Client {
-        if (!this._clients.has(sessionId)) {
-            throw `Session with id ${sessionId} not found in pool`;
-        }
-
-        return this._clients.get(sessionId);
-    }
-
-    startWithExistingSession(sessionId: SessionId) {
-        if (this._clients.has(sessionId)) {
-            throw `Session with id ${sessionId} is already in pool`;
-        }
+    loadSession(sessionId: SessionId): ClientProxy {
         const client = new Client(this._platform, this._features);
         this._clients.set(sessionId, client);
+
+        // TODO REFACTOR: Handle case where session doesn't yet exist.
         client.startWithExistingSession(sessionId);
+
+        return new ClientProxy(sessionId, this);
     }
 
-    loadStatus(sessionId: SessionId): ObservableValue<LoadStatus> {
-        return this.client(sessionId).loadStatus;
-    }
-
-    loadError(sessionId: SessionId): Error {
-        return this.client(sessionId).loadError;
-    }
-
-    accountSetup(sessionId: SessionId): AccountSetup {
-        return this.client(sessionId).accountSetup;
-    }
-
-    syncStatus(sessionId: SessionId): ObservableValue<SyncStatus> {
-        return this.client(sessionId).sync.status;
+    // TODO REFACTOR: Make this method private since client should not be exposed.
+    client(sessionId: SessionId): Client | undefined {
+        return this._clients.get(sessionId);
     }
 }

@@ -159,12 +159,11 @@ export class RootViewModel extends ViewModel {
     }
 
     _showSessionLoader(sessionId) {
-        const clientPool = new ClientPool(this.platform, this.features);
-        clientPool.startWithExistingSession(sessionId);
+        this._clientPool = new ClientPool(this.platform, this.features);
+        const clientProxy = this._clientPool.loadSession(sessionId);
         this._setSection(() => {
             this._sessionLoadViewModel = new SessionLoadViewModel(this.childOptions({
-                sessionId,
-                clientPool: clientPool,
+                clientProxy,
                 ready: client => this._showSession(client)
             }));
             this._sessionLoadViewModel.start();

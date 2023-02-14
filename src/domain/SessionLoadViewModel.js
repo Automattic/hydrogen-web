@@ -22,11 +22,10 @@ import {ViewModel} from "./ViewModel";
 export class SessionLoadViewModel extends ViewModel {
     constructor(options) {
         super(options);
-        const {sessionId, clientPool, ready, homeserver, deleteSessionOnCancel} = options;
-        this._sessionId = sessionId;
-        this._clientPool = clientPool;
-        // TODO REFACTOR: Remove this._client, all operations should be done through the session pool.
-        this._client = clientPool.client(sessionId);
+        const {clientProxy, ready, homeserver, deleteSessionOnCancel} = options;
+        this._clientProxy = clientProxy;
+        // TODO REFACTOR: Remove this._client, all operations should be done through the proxy.
+        this._client = clientProxy.client;
         this._ready = ready;
         this._homeserver = homeserver;
         this._deleteSessionOnCancel = deleteSessionOnCancel;
@@ -43,16 +42,16 @@ export class SessionLoadViewModel extends ViewModel {
         try {
             this._loading = true;
             this.emitChange("loading");
-            this._waitHandle = this._clientPool.loadStatus(this._sessionId).waitFor(s => {
+            this._waitHandle = this._clientProxy.loadStatus().waitFor(s => {
                 if (s === LoadStatus.AccountSetup) {
-                    this._accountSetupViewModel = new AccountSetupViewModel(this.childOptions({accountSetup: this._clientPool.accountSetup(this._sessionId)}));
+                    this._accountSetupViewModel = new AccountSetupViewModel(this.childOptions({accountSetup: this._clientProxy.accountSetup()}));
                 } else {
                     this._accountSetupViewModel = undefined;
                 }
                 this.emitChange("loadLabel");
                 // wait for initial sync, but not catchup sync
                 const isCatchupSync = s === LoadStatus.FirstSync &&
-                    this._clientPool.syncStatus(this._sessionId).get() === SyncStatus.CatchupSync;
+                    this._clientProxy.syncStatus().get() === SyncStatus.CatchupSync;
                 return isCatchupSync ||
                     s === LoadStatus.LoginFailed ||
                     s === LoadStatus.Error ||
@@ -69,8 +68,8 @@ export class SessionLoadViewModel extends ViewModel {
             // much like we will once you are in the app. Probably a good idea
 
             // did it finish or get stuck at LoginFailed or Error?
-            const loadStatus = this._clientPool(this._sessionId).loadStatus.get();
-            const loadError = this._clientPool(this._sessionId).loadError;
+            const loadStatus = this._clientProxy.loadStatus().get();
+            const loadError = this._clientProxy.loadError();
             if (loadStatus === LoadStatus.FirstSync || loadStatus === LoadStatus.Ready) {
                 const client = this._client;
                 // session container is ready,
@@ -108,7 +107,7 @@ export class SessionLoadViewModel extends ViewModel {
     // to show a spinner or not
     get loading() {
         const client = this._client;
-        if (client && this._clientPool(this._sessionId).loadStatus.get() === LoadStatus.AccountSetup) {
+        if (client && this._clientProxy.loadStatus().get() === LoadStatus.AccountSetup) {
             return false;
         }
         return this._loading;
@@ -117,13 +116,13 @@ export class SessionLoadViewModel extends ViewModel {
     get loadLabel() {
         const client = this._client;
         const error = this._getError();
-        if (error || (client && this._clientPool(this._sessionId).loadStatus.get() === LoadStatus.Error)) {
+        if (error || (client && this._clientProxy.loadStatus().get() === LoadStatus.Error)) {
             return `Something went wrong: ${error && error.message}.`;
         }
 
         // Statuses related to login are handled by respective login view models
         if (client) {
-            switch (this._clientPool(this._sessionId).loadStatus.get()) {
+            switch (this._clientProxy.loadStatus().get()) {
                 case LoadStatus.QueryAccount:
                     return `Querying account encryption setup…`;
                 case LoadStatus.AccountSetup:
@@ -135,7 +134,7 @@ export class SessionLoadViewModel extends ViewModel {
                 case LoadStatus.FirstSync:
                     return `Getting your conversations from the server…`;
                 default:
-                    return this._clientPool(this._sessionId).loadStatus.get();
+                    return this._clientProxy.loadStatus().get();
             }
         }
 
@@ -143,7 +142,7 @@ export class SessionLoadViewModel extends ViewModel {
     }
 
     _getError() {
-        return this._error || this._clientPool(this._sessionId).loadError;
+        return this._error || this._clientProxy.loadError();
     }
 
     get hasError() {
