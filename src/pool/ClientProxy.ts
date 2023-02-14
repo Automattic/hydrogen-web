@@ -33,6 +33,10 @@ export class ClientProxy {
         return this.client.sync.status;
     }
 
+    startLogout() {
+        return this.client.startLogout(this._sessionId);
+    }
+
     dispose() {
         this.client.dispose();
     }
