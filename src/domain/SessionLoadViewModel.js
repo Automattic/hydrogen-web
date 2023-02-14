@@ -24,8 +24,6 @@ export class SessionLoadViewModel extends ViewModel {
         super(options);
         const {clientProxy, ready, homeserver, deleteSessionOnCancel} = options;
         this._clientProxy = clientProxy;
-        // TODO REFACTOR: Remove this._client, all operations should be done through the proxy.
-        this._client = clientProxy.client;
         this._ready = ready;
         this._homeserver = homeserver;
         this._deleteSessionOnCancel = deleteSessionOnCancel;
@@ -71,11 +69,11 @@ export class SessionLoadViewModel extends ViewModel {
             const loadStatus = this._clientProxy.loadStatus().get();
             const loadError = this._clientProxy.loadError();
             if (loadStatus === LoadStatus.FirstSync || loadStatus === LoadStatus.Ready) {
-                const client = this._client;
+                const client = this._clientProxy.client;
                 // session container is ready,
                 // don't dispose it anymore when 
                 // we get disposed
-                this._client = null;
+                this._clientProxy = null;
                 this._ready(client);
             }
             if (loadError) {
