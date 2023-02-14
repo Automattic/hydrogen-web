@@ -93,9 +93,9 @@ export class SessionLoadViewModel extends ViewModel {
 
 
     dispose() {
-        if (this._client) {
-            this._client.dispose();
-            this._client = null;
+        if (this._clientProxy) {
+            this._clientProxy.dispose();
+            this._clientProxy = null;
         }
         if (this._waitHandle) {
             // rejects with AbortError
@@ -106,23 +106,23 @@ export class SessionLoadViewModel extends ViewModel {
 
     // to show a spinner or not
     get loading() {
-        const client = this._client;
-        if (client && this._clientProxy.loadStatus().get() === LoadStatus.AccountSetup) {
+        const clientProxy = this._clientProxy;
+        if (clientProxy && clientProxy.loadStatus().get() === LoadStatus.AccountSetup) {
             return false;
         }
         return this._loading;
     }
 
     get loadLabel() {
-        const client = this._client;
+        const clientProxy = this._clientProxy;
         const error = this._getError();
-        if (error || (client && this._clientProxy.loadStatus().get() === LoadStatus.Error)) {
+        if (error || (clientProxy && clientProxy.loadStatus().get() === LoadStatus.Error)) {
             return `Something went wrong: ${error && error.message}.`;
         }
 
         // Statuses related to login are handled by respective login view models
-        if (client) {
-            switch (this._clientProxy.loadStatus().get()) {
+        if (clientProxy) {
+            switch (clientProxy.loadStatus().get()) {
                 case LoadStatus.QueryAccount:
                     return `Querying account encryption setup…`;
                 case LoadStatus.AccountSetup:
@@ -134,7 +134,7 @@ export class SessionLoadViewModel extends ViewModel {
                 case LoadStatus.FirstSync:
                     return `Getting your conversations from the server…`;
                 default:
-                    return this._clientProxy.loadStatus().get();
+                    return clientProxy.loadStatus().get();
             }
         }
 

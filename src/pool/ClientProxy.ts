@@ -32,4 +32,8 @@ export class ClientProxy {
     syncStatus(): ObservableValue<SyncStatus> {
         return this.client.sync.status;
     }
+
+    dispose() {
+        this.client.dispose();
+    }
 }
