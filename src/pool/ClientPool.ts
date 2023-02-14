@@ -4,7 +4,7 @@ import {AccountSetup, Client, LoadStatus} from "../matrix/Client";
 import {ObservableValue} from "../observable/value";
 import {SyncStatus} from "../matrix/Sync";
 
-type SessionId = string;
+export type SessionId = string;
 
 export class ClientPool {
     private readonly _clients: Map<SessionId, Client> = new Map;
