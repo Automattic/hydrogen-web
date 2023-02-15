@@ -1,16 +1,19 @@
 import {SyncWorkerMessageType} from "./SyncWorker";
+import {SessionInfoStorage} from "../../../matrix/sessioninfo/localstorage/SessionInfoStorage";
 
 export type SessionId = string;
 
 export class SyncWorkerPool {
     private readonly _workers: Map<SessionId, Worker> = new Map;
     private readonly _path: string;
+    private readonly _sessionInfoStorage: SessionInfoStorage;
 
-    constructor(path: string) {
+    constructor(path: string, sessionInfoStorage: SessionInfoStorage) {
         this._path = path;
+        this._sessionInfoStorage = sessionInfoStorage;
     }
 
-    add(sessionId: SessionId) {
+    async add(sessionId: SessionId) {
         if (this._workers.size > 0) {
             throw "Currently there can only be one active sync worker";
         }
@@ -26,11 +29,12 @@ export class SyncWorkerPool {
             console.log(data);
         }
 
+        const sessionInfo = await this._sessionInfoStorage.get(sessionId);
         worker.postMessage({
             type: SyncWorkerMessageType.StartSync,
             payload: {
-                sessionId: sessionId,
-            }
+                sessionInfo: sessionInfo
+            },
         });
     }
 

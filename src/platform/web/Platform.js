@@ -153,7 +153,7 @@ export class Platform {
         this._syncWorkerPool = null;
         if (assetPaths.syncWorker && window.Worker) {
             this._syncWorkerPool = new SyncWorkerPool(this._assetPaths.syncWorker);
-            this._syncWorkerPool.add("my-session-id");
+            this._syncWorkerPool.add("1646528482480255");
         }
         this.notificationService = undefined;
         // Only try to use crypto when olm is provided
