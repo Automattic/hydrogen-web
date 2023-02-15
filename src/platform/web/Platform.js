@@ -151,10 +151,6 @@ export class Platform {
             this._serviceWorkerHandler.registerAndStart(assetPaths.serviceWorker);
         }
         this._syncWorkerPool = null;
-        if (assetPaths.syncWorker && window.Worker) {
-            this._syncWorkerPool = new SyncWorkerPool(this._assetPaths.syncWorker);
-            this._syncWorkerPool.add("1646528482480255");
-        }
         this.notificationService = undefined;
         // Only try to use crypto when olm is provided
         if(this._assetPaths.olm) {
@@ -179,6 +175,11 @@ export class Platform {
         this.mediaDevices = new MediaDevicesWrapper(navigator.mediaDevices);
         this.webRTC = new DOMWebRTC();
         this._themeLoader = import.meta.env.DEV? null: new ThemeLoader(this);
+
+        if (assetPaths.syncWorker && window.Worker) {
+            this._syncWorkerPool = new SyncWorkerPool(this._assetPaths.syncWorker, this.sessionInfoStorage);
+            this._syncWorkerPool.add("1646528482480255");
+        }
     }
 
     async init() {
