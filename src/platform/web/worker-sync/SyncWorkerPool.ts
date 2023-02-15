@@ -1,4 +1,6 @@
-type SessionId = string;
+import {SyncWorkerMessageType} from "./SyncWorker";
+
+export type SessionId = string;
 
 export class SyncWorkerPool {
     private readonly _workers: Map<SessionId, Worker> = new Map;
@@ -25,13 +27,10 @@ export class SyncWorkerPool {
         }
 
         worker.postMessage({
-            hello: {
-                foo: "foo",
-                bar: "bar",
-            },
-            world: {
-                baz: "baz"
-            },
+            type: SyncWorkerMessageType.StartSync,
+            payload: {
+                sessionId: sessionId,
+            }
         });
     }
 
