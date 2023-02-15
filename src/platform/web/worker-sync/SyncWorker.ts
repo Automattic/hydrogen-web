@@ -1,4 +1,4 @@
-import {SessionId} from "./SyncWorkerPool";
+import {ISessionInfo} from "../../../matrix/sessioninfo/localstorage/SessionInfoStorage";
 
 type Payload = object;
 
@@ -12,12 +12,12 @@ interface Message {
 }
 
 export interface StartSyncPayload extends Payload {
-    sessionId: SessionId,
+    sessionInfo: ISessionInfo,
 }
 
 class SyncWorker {
-    start(payload: StartSyncPayload): Payload {
-        console.log(`Starting sync for session with id ${payload.sessionId}`);
+    async start(payload: StartSyncPayload): Promise<Payload> {
+        console.log(`Starting sync for session with id ${payload.sessionInfo.id}`);
         return payload;
     }
 }
@@ -26,15 +26,17 @@ const worker = new SyncWorker();
 // @ts-ignore
 self.syncWorker = worker;
 
-self.addEventListener("message", event => {
+self.onmessage = (event: MessageEvent) => {
     const data: Message = event.data;
 
-    let reply: Payload;
+    let promise: Promise<Payload>;
     switch (data.type) {
         case SyncWorkerMessageType.StartSync:
-            reply = worker.start(data.payload as StartSyncPayload);
+            promise = worker.start(data.payload as StartSyncPayload);
             break;
     }
 
-    postMessage(reply);
-});
+    promise.then((reply: Payload) => {
+        postMessage(reply);
+    }).catch(error => console.error(error))
+};
