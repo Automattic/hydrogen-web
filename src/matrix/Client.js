@@ -32,6 +32,7 @@ import {SSOLoginHelper} from "./login/SSOLoginHelper";
 import {getDehydratedDevice} from "./e2ee/Dehydration.js";
 import {Registration} from "./registration/Registration";
 import {FeatureSet} from "../features";
+import {SyncInWorker} from "./SyncInWorker";
 
 export const LoadStatus = createEnum(
     "NotLoading",
@@ -291,7 +292,7 @@ export class Client {
             await log.wrap("createIdentity", log => this._session.createIdentity(log));
         }
 
-        this._sync = new Sync({hsApi: this._requestScheduler.hsApi, storage: this._storage, session: this._session, logger: this._platform.logger});
+        this._sync = new SyncInWorker({hsApi: this._requestScheduler.hsApi, storage: this._storage, session: this._session, logger: this._platform.logger});
         // notify sync and session when back online
         this._reconnectSubscription = this._reconnector.connectionStatus.subscribe(state => {
             if (state === ConnectionStatus.Online) {
