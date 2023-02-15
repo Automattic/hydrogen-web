@@ -43,6 +43,7 @@ import {MediaDevicesWrapper} from "./dom/MediaDevices";
 import {DOMWebRTC} from "./dom/WebRTC";
 import {ThemeLoader} from "./theming/ThemeLoader";
 import {TimeFormatter} from "./dom/TimeFormatter";
+import {SyncWorkerPool} from "./worker-sync/SyncWorkerPool";
 
 function addScript(src) {
     return new Promise(function (resolve, reject) {
@@ -148,6 +149,10 @@ export class Platform {
         if (assetPaths.serviceWorker && "serviceWorker" in navigator) {
             this._serviceWorkerHandler = new ServiceWorkerHandler();
             this._serviceWorkerHandler.registerAndStart(assetPaths.serviceWorker);
+        }
+        this._syncWorkerPool = null;
+        if (assetPaths.syncWorker && window.Worker) {
+            this._syncWorkerPool = new SyncWorkerPool(this._assetPaths.syncWorker);
         }
         this.notificationService = undefined;
         // Only try to use crypto when olm is provided
