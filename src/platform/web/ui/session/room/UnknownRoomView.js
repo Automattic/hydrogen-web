@@ -49,7 +49,7 @@ export class UnknownRoomView extends TemplateView {
                     t.if(vm => vm.error, t => t.p({className: "error"}, vm.error))
                 ]));
             });
-            return kind === 'worldReadableRoom' ? new WorldReadableRoomView(vm) : unknownRoomView;
+            return vm.previewPossible ? new WorldReadableRoomView(vm) : unknownRoomView;
         });
     }
 }
