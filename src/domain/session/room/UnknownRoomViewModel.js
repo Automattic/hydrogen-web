@@ -106,4 +106,9 @@ export class UnknownRoomViewModel extends ViewModel {
             this.emitChange("error");
         }
     }
+
+    dispose() {
+        super.dispose();
+        void this._session.deleteWorldReadableRoomData(this.roomIdOrAlias);
+    }
 }

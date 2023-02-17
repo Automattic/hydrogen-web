@@ -1106,14 +1106,12 @@ export class Session {
             const response = await this._hsApi.messages(roomId, options, {log}).response();
             log.set("/messages endpoint response", response);
 
+            await this.deleteWorldReadableRoomData(roomId, log);
+
             const txn = await this._storage.readWriteTxn([
                 this._storage.storeNames.timelineFragments,
                 this._storage.storeNames.timelineEvents,
             ]);
-
-            // clear old records for this room
-            txn.timelineFragments.removeAllForRoom(roomId);
-            txn.timelineEvents.removeAllForRoom(roomId);
 
             // insert fragment and event records for this room
             const fragment = {
@@ -1137,6 +1135,21 @@ export class Session {
             }
 
             return response;
+        });
+    }
+
+    async deleteWorldReadableRoomData(roomId, log = null) {
+        return this._platform.logger.wrapOrRun(log, "deleteWorldReadableRoomData", async log => {
+            log.set("id", roomId);
+
+            const txn = await this._storage.readWriteTxn([
+                this._storage.storeNames.timelineFragments,
+                this._storage.storeNames.timelineEvents,
+            ]);
+
+            // clear old records for this room
+            txn.timelineFragments.removeAllForRoom(roomId);
+            txn.timelineEvents.removeAllForRoom(roomId);
         });
     }
 
