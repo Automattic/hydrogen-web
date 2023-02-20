@@ -8,6 +8,9 @@ import {OnlineStatus} from "../dom/OnlineStatus";
 import {Sync} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
 import {WorkerPlatform} from "./WorkerPlatform";
+import {Storage} from "../../../matrix/storage/idb/Storage";
+import {StorageFactory} from "../../../matrix/storage/idb/StorageFactory";
+import {NullLogger} from "../../../logging/NullLogger";
 
 type Payload = object;
 
@@ -28,6 +31,7 @@ class SyncWorker {
     private _clock: Clock;
     private _reconnector: Reconnector;
     private _platform: WorkerPlatform;
+    private _storage: Storage;
     private _sync: Sync;
 
     async start(payload: StartSyncPayload): Promise<Payload> {
@@ -51,8 +55,14 @@ class SyncWorker {
 
         this._platform = new WorkerPlatform();
 
+        const storageFactory = new StorageFactory();
+        const logger = new NullLogger;
+        await logger.run("", async log => {
+            this._storage = await storageFactory.create(sessionInfo.id, log)
+        });
+
         const session = new Session({
-            storage,
+            storage: this._storage,
             hsApi,
             sessionInfo,
             olm,
@@ -65,7 +75,7 @@ class SyncWorker {
         this._sync = new Sync({
             hsApi,
             session,
-            storage,
+            storage: this._storage,
             logger,
         });
 
