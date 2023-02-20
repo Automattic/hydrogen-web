@@ -12,6 +12,7 @@ import {Storage} from "../../../matrix/storage/idb/Storage";
 import {StorageFactory} from "../../../matrix/storage/idb/StorageFactory";
 import {NullLogger} from "../../../logging/NullLogger";
 import {MediaRepository} from "../../../matrix/net/MediaRepository";
+import {FeatureSet} from "../../../features";
 
 type Payload = object;
 
@@ -69,6 +70,8 @@ class SyncWorker {
             homeserver: sessionInfo.homeServer,
             platform: this._platform,
         });
+
+        const features = new FeatureSet;
 
         const session = new Session({
             storage: this._storage,
