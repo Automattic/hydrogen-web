@@ -9,9 +9,10 @@ import {Session} from "../../../matrix/Session";
 import {WorkerPlatform} from "./WorkerPlatform";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {StorageFactory} from "../../../matrix/storage/idb/StorageFactory";
-import {NullLogger} from "../../../logging/NullLogger";
 import {MediaRepository} from "../../../matrix/net/MediaRepository";
 import {FeatureSet} from "../../../features";
+import {Logger} from "../../../logging/Logger";
+import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 
 type Payload = object;
 
@@ -53,10 +54,10 @@ class SyncWorker {
             reconnector: this._reconnector,
         });
 
-        this._platform = new WorkerPlatform();
+        const logger = new Logger({platform: this._platform});
+        logger.addReporter(new ConsoleReporter());
 
         const storageFactory = new StorageFactory();
-        const logger = new NullLogger;
         await logger.run("", async log => {
             this._storage = await storageFactory.create(sessionInfo.id, log)
         });
