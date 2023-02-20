@@ -5,6 +5,8 @@ import {Clock} from "../dom/Clock";
 import {Reconnector} from "../../../matrix/net/Reconnector";
 import {ExponentialRetryDelay} from "../../../matrix/net/ExponentialRetryDelay";
 import {OnlineStatus} from "../dom/OnlineStatus";
+import {Sync} from "../../../matrix/Sync";
+import {Session} from "../../../matrix/Session";
 
 type Payload = object;
 
@@ -24,6 +26,7 @@ export interface StartSyncPayload extends Payload {
 class SyncWorker {
     private _clock: Clock;
     private _reconnector: Reconnector;
+    private _sync: Sync;
 
     async start(payload: StartSyncPayload): Promise<Payload> {
         const sessionInfo = payload.sessionInfo;
@@ -44,6 +47,23 @@ class SyncWorker {
             reconnector: this._reconnector,
         });
 
+        const session = new Session({
+            storage,
+            hsApi,
+            sessionInfo,
+            olm,
+            olmWorker,
+            platform,
+            mediaRepository,
+            features,
+        });
+
+        this._sync = new Sync({
+            hsApi,
+            session,
+            storage,
+            logger,
+        });
 
         return payload;
     }
