@@ -11,6 +11,7 @@ import {WorkerPlatform} from "./WorkerPlatform";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {StorageFactory} from "../../../matrix/storage/idb/StorageFactory";
 import {NullLogger} from "../../../logging/NullLogger";
+import {MediaRepository} from "../../../matrix/net/MediaRepository";
 
 type Payload = object;
 
@@ -63,6 +64,11 @@ class SyncWorker {
 
         const olm = this._platform.loadOlm();
         const olmWorker = await this._platform.loadOlmWorker();
+
+        const mediaRepository = new MediaRepository({
+            homeserver: sessionInfo.homeServer,
+            platform: this._platform,
+        });
 
         const session = new Session({
             storage: this._storage,
