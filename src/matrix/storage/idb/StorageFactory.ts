@@ -52,12 +52,12 @@ async function requestPersistedStorage(): Promise<boolean> {
 }
 
 export class StorageFactory {
-    private _serviceWorkerHandler: ServiceWorkerHandler;
+    private _serviceWorkerHandler?: ServiceWorkerHandler;
     private _idbFactory: IDBFactory;
     private _IDBKeyRange: typeof IDBKeyRange;
     private _localStorage: IDOMStorage;
 
-    constructor(serviceWorkerHandler: ServiceWorkerHandler, idbFactory: IDBFactory = window.indexedDB, _IDBKeyRange = window.IDBKeyRange, localStorage: IDOMStorage = window.localStorage) {
+    constructor(serviceWorkerHandler?: ServiceWorkerHandler, idbFactory: IDBFactory = window.indexedDB, _IDBKeyRange = window.IDBKeyRange, localStorage: IDOMStorage = window.localStorage) {
         this._serviceWorkerHandler = serviceWorkerHandler;
         this._idbFactory = idbFactory;
         this._IDBKeyRange = _IDBKeyRange;
