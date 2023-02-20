@@ -57,7 +57,7 @@ export class StorageFactory {
     private _IDBKeyRange: typeof IDBKeyRange;
     private _localStorage: IDOMStorage;
 
-    constructor(serviceWorkerHandler?: ServiceWorkerHandler, idbFactory: IDBFactory = window.indexedDB, _IDBKeyRange = window.IDBKeyRange, localStorage: IDOMStorage = window.localStorage) {
+    constructor(serviceWorkerHandler?: ServiceWorkerHandler, idbFactory: IDBFactory = indexedDB, _IDBKeyRange = IDBKeyRange, localStorage: IDOMStorage = window?.localStorage ?? undefined) {
         this._serviceWorkerHandler = serviceWorkerHandler;
         this._idbFactory = idbFactory;
         this._IDBKeyRange = _IDBKeyRange;
