@@ -61,6 +61,9 @@ class SyncWorker {
             this._storage = await storageFactory.create(sessionInfo.id, log)
         });
 
+        const olm = this._platform.loadOlm();
+        const olmWorker = await this._platform.loadOlmWorker();
+
         const session = new Session({
             storage: this._storage,
             hsApi,
