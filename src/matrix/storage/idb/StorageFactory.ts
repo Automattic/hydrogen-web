@@ -55,13 +55,16 @@ export class StorageFactory {
     private _serviceWorkerHandler?: ServiceWorkerHandler;
     private _idbFactory: IDBFactory;
     private _IDBKeyRange: typeof IDBKeyRange;
-    private _localStorage: IDOMStorage;
+    private _localStorage?: IDOMStorage;
 
-    constructor(serviceWorkerHandler?: ServiceWorkerHandler, idbFactory: IDBFactory = indexedDB, _IDBKeyRange = IDBKeyRange, localStorage: IDOMStorage = window?.localStorage ?? undefined) {
+    constructor(serviceWorkerHandler?: ServiceWorkerHandler, idbFactory: IDBFactory = indexedDB, _IDBKeyRange = IDBKeyRange, _localStorage: IDOMStorage | undefined = undefined) {
         this._serviceWorkerHandler = serviceWorkerHandler;
         this._idbFactory = idbFactory;
         this._IDBKeyRange = _IDBKeyRange;
-        this._localStorage = localStorage;
+        if (typeof window !== 'undefined' && _localStorage === undefined) {
+            _localStorage = localStorage;
+        }
+        this._localStorage = _localStorage;
     }
 
     async create(sessionId: string, log: ILogItem): Promise<Storage> {
