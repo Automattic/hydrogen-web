@@ -1,4 +1,4 @@
-import {SyncWorkerMessageType} from "./SyncWorker";
+import {SyncMessageType} from "./SyncWorker";
 import {SessionInfoStorage} from "../../../matrix/sessioninfo/localstorage/SessionInfoStorage";
 
 export type SessionId = string;
@@ -31,8 +31,8 @@ export class SyncWorkerPool {
 
         const sessionInfo = await this._sessionInfoStorage.get(sessionId);
         worker.postMessage({
-            type: SyncWorkerMessageType.StartSync,
-            payload: {
+            type: SyncMessageType.StartSync,
+            body: {
                 sessionInfo: sessionInfo
             },
         });

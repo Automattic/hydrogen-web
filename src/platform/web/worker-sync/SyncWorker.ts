@@ -14,30 +14,33 @@ import {FeatureSet} from "../../../features";
 import {Logger} from "../../../logging/Logger";
 import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 import assetPaths from "../sdk/paths/vite";
+import {MessageBody, ResultBody, Worker} from "./worker/Worker";
 
-type Payload = object;
-
-export enum SyncWorkerMessageType {
-    StartSync,
+export enum SyncMessageType {
+    StartSync = "StartSync",
 }
 
-interface Message {
-    type: SyncWorkerMessageType,
-    payload: Payload
-}
-
-export interface StartSyncPayload extends Payload {
+export interface StartSyncMessage extends MessageBody {
     sessionInfo: ISessionInfo,
 }
 
-class SyncWorker {
+export interface StartSyncResult extends ResultBody {
+    success: boolean,
+}
+
+export class SyncWorker extends Worker {
     private _reconnector: Reconnector;
     private _platform: WorkerPlatform;
     private _storage: Storage;
     private _sync: Sync;
 
-    async start(payload: StartSyncPayload): Promise<Payload> {
-        const sessionInfo = payload.sessionInfo;
+    constructor() {
+        super();
+        super.addHandler(SyncMessageType.StartSync, this.startSync.bind(this));
+    }
+
+    async startSync(message: StartSyncMessage): Promise<StartSyncResult> {
+        const sessionInfo = message.sessionInfo;
         console.log(`Starting sync worker for session with id ${sessionInfo.id}`);
 
         this._platform = new WorkerPlatform({assetPaths});
@@ -91,25 +94,6 @@ class SyncWorker {
             logger,
         });
 
-        return payload;
+        return { success: true };
     }
 }
-
-const worker = new SyncWorker();
-// @ts-ignore
-self.syncWorker = worker;
-
-self.onmessage = (event: MessageEvent) => {
-    const data: Message = event.data;
-
-    let promise: Promise<Payload>;
-    switch (data.type) {
-        case SyncWorkerMessageType.StartSync:
-            promise = worker.start(data.payload as StartSyncPayload);
-            break;
-    }
-
-    promise.then((reply: Payload) => {
-        postMessage(reply);
-    }).catch(error => console.error(error))
-};
