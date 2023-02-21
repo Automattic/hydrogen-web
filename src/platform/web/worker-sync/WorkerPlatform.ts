@@ -2,8 +2,10 @@ import {Clock} from "../dom/Clock";
 
 export class WorkerPlatform {
     private readonly _clock: Clock;
+    private _assetPaths: any;
 
-    constructor() {
+    constructor({assetPaths}) {
+        this._assetPaths = assetPaths;
         this._clock = new Clock;
     }
 

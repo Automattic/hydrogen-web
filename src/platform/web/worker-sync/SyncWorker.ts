@@ -13,6 +13,7 @@ import {MediaRepository} from "../../../matrix/net/MediaRepository";
 import {FeatureSet} from "../../../features";
 import {Logger} from "../../../logging/Logger";
 import {ConsoleReporter} from "../../../logging/ConsoleReporter";
+import assetPaths from "../sdk/paths/vite";
 
 type Payload = object;
 
@@ -39,7 +40,7 @@ class SyncWorker {
         const sessionInfo = payload.sessionInfo;
         console.log(`Starting sync worker for session with id ${sessionInfo.id}`);
 
-        this._platform = new WorkerPlatform();
+        this._platform = new WorkerPlatform({assetPaths});
 
         this._reconnector = new Reconnector({
             onlineStatus: new OnlineStatus(),
