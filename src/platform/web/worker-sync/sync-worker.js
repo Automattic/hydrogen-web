@@ -1,5 +1,5 @@
 import {SyncWorker} from "./SyncWorker";
 
 const worker = new SyncWorker();
-worker.start();
+worker.init().then(() => worker.start());
 self.syncWorker = worker;

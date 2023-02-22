@@ -34,6 +34,11 @@ export abstract class Worker {
         this._handlers.set(type, handler);
     }
 
+    async init(): Promise<void> {
+        // Extending classes can override this method as needed to perform async initialization.
+        return;
+    }
+
     start() {
         if (self.onmessage) {
             throw `${this.class} is already started`;

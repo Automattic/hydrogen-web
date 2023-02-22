@@ -7,14 +7,14 @@ import {OnlineStatus} from "../dom/OnlineStatus";
 import {Sync} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
 import {WorkerPlatform} from "./WorkerPlatform";
-import {Storage} from "../../../matrix/storage/idb/Storage";
 import {StorageFactory} from "../../../matrix/storage/idb/StorageFactory";
 import {MediaRepository} from "../../../matrix/net/MediaRepository";
 import {FeatureSet} from "../../../features";
 import {Logger} from "../../../logging/Logger";
 import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 import assetPaths from "../sdk/paths/vite";
-import {Request, RequestData, Response, ResponseData, Worker} from "./worker/Worker";
+import {Request, RequestData, ResponseData, Worker} from "./worker/Worker";
+import {RequestFunction} from "../../types/types";
 
 enum SyncRequestType {
     StartSync = "StartSync",
@@ -39,13 +39,35 @@ export class StartSyncRequest implements Request {
 }
 
 export class SyncWorker extends Worker {
-    private _reconnector: Reconnector;
-    private _platform: WorkerPlatform;
-    private _storage: Storage;
+    private readonly _reconnector: Reconnector;
+    private readonly _request: RequestFunction;
+    private readonly _platform: WorkerPlatform;
+    private readonly _storageFactory: StorageFactory;
+    private readonly _logger: Logger;
+    private readonly _features: FeatureSet;
     private _sync: Sync;
+    private _olm: any;
+    private _olmWorker: any;
 
     constructor() {
         super();
+        this._platform = new WorkerPlatform({assetPaths});
+        this._request = createFetchRequest(this._platform.clock.createTimeout);
+        this._reconnector = new Reconnector({
+            onlineStatus: new OnlineStatus(),
+            retryDelay: new ExponentialRetryDelay(this._platform.clock.createTimeout),
+            createMeasure: this._platform.clock.createMeasure
+        });
+        this._storageFactory = new StorageFactory();
+        this._logger = new Logger({platform: this._platform});
+        this._logger.addReporter(new ConsoleReporter());
+        this._features = new FeatureSet;
+    }
+
+    async init() {
+        this._olm = this._platform.loadOlm();
+        this._olmWorker = await this._platform.loadOlmWorker();
+
         super.addHandler(SyncRequestType.StartSync, this.startSync.bind(this));
     }
 
@@ -53,55 +75,39 @@ export class SyncWorker extends Worker {
         const sessionInfo = request.data.sessionInfo;
         console.log(`Starting sync worker for session with id ${sessionInfo.id}`);
 
-        this._platform = new WorkerPlatform({assetPaths});
-
-        this._reconnector = new Reconnector({
-            onlineStatus: new OnlineStatus(),
-            retryDelay: new ExponentialRetryDelay(this._platform.clock.createTimeout),
-            createMeasure: this._platform.clock.createMeasure
-        });
-
         const hsApi = new HomeServerApi({
+            request: this._request,
+            reconnector: this._reconnector,
             homeserver: sessionInfo.homeserver,
             accessToken: sessionInfo.accessToken,
-            request: createFetchRequest(this._platform.clock.createTimeout),
-            reconnector: this._reconnector,
         });
 
-        const logger = new Logger({platform: this._platform});
-        logger.addReporter(new ConsoleReporter());
-
-        const storageFactory = new StorageFactory();
-        await logger.run("", async log => {
-            this._storage = await storageFactory.create(sessionInfo.id, log)
+        let storage;
+        await this._logger.run("", async log => {
+            storage = await this._storageFactory.create(sessionInfo.id, log)
         });
-
-        const olm = this._platform.loadOlm();
-        const olmWorker = await this._platform.loadOlmWorker();
 
         const mediaRepository = new MediaRepository({
-            homeserver: sessionInfo.homeServer,
             platform: this._platform,
+            homeserver: sessionInfo.homeServer,
         });
 
-        const features = new FeatureSet;
-
         const session = new Session({
-            storage: this._storage,
+            platform: this._platform,
+            features: this._features,
+            olm: this._olm,
+            olmWorker: this._olmWorker,
+            storage,
             hsApi,
             sessionInfo,
-            olm,
-            olmWorker,
-            platform: this._platform,
             mediaRepository,
-            features,
         });
 
         this._sync = new Sync({
+            logger: this._logger,
             hsApi,
             session,
-            storage: this._storage,
-            logger,
+            storage,
         });
 
         return { success: true };
