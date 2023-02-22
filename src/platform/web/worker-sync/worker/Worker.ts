@@ -1,22 +1,24 @@
 /// <reference lib="webworker" />
 declare let self: DedicatedWorkerGlobalScope
 
-export type MessageBody = object;
-export type ResultBody = object;
+type RequestType = string;
 
-type MessageType = string;
+export type RequestData = object;
+export type ResponseData = object;
 
-interface Message {
-    type: MessageType,
-    body: MessageBody
-}
-interface Result {
-    type: MessageType,
-    body: ResultBody,
+export interface Request {
+    type: RequestType;
+    data: RequestData;
 }
 
-type MessageHandler = (body: MessageBody) => Promise<ResultBody>;
-type HandlerMap = Map<MessageType, MessageHandler>;
+export interface Response {
+    request: Request;
+    error?: Error;
+    data?: ResponseData;
+}
+
+type RequestHandler = (request: Request) => Promise<ResponseData>;
+type HandlerMap = Map<RequestType, RequestHandler>;
 
 export abstract class Worker {
     private readonly _handlers: HandlerMap = new Map;
@@ -28,7 +30,7 @@ export abstract class Worker {
         }
     }
 
-    protected addHandler(type: MessageType, handler: MessageHandler) {
+    protected addHandler(type: RequestType, handler: RequestHandler) {
         this._handlers.set(type, handler);
     }
 
@@ -37,32 +39,35 @@ export abstract class Worker {
             throw `${this.class} is already started`;
         }
 
-        self.onmessage = (event: MessageEvent) => void this.onMessage(event);
+        self.onmessage = (event: MessageEvent) => void this.onRequest(event);
     }
 
-    private async onMessage(event: MessageEvent) {
-        const message = event.data as Message;
-        try {
-            const result = await this.handle(message);
-            postMessage(result);
-        } catch (error) {
-            console.error(error);
-            return;
-        }
+    private async onRequest(event: MessageEvent) {
+        const request = event.data as Request;
+        const response = await this.handle(request);
+        postMessage(response);
     }
 
-    private async handle(message: Message): Promise<Result> {
-        const handler = this._handlers.get(message.type);
+    private async handle(request: Request): Promise<Response> {
+        const handler = this._handlers.get(request.type);
 
         if (!handler) {
-            throw `No handler is registered in ${this.class} for messages of type ${message.type}`;
+            throw `No handler is registered in ${this.class} for requests of type ${request.type}`;
         }
 
-        const result = await handler(message.body);
-        return {
-            type: message.type,
-            body: result,
-        };
+        try {
+            const responseData = await handler(request);
+            return {
+                request: request,
+                data: responseData,
+            };
+        } catch (error) {
+            console.error(error);
+            return {
+                request: request,
+                error: error,
+            };
+        }
     }
 
     private get class(): string {

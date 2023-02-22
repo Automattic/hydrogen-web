@@ -14,18 +14,28 @@ import {FeatureSet} from "../../../features";
 import {Logger} from "../../../logging/Logger";
 import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 import assetPaths from "../sdk/paths/vite";
-import {MessageBody, ResultBody, Worker} from "./worker/Worker";
+import {Request, RequestData, Response, ResponseData, Worker} from "./worker/Worker";
 
-export enum SyncMessageType {
+enum SyncRequestType {
     StartSync = "StartSync",
 }
 
-export interface StartSyncMessage extends MessageBody {
+interface StartSyncRequestData extends RequestData {
     sessionInfo: ISessionInfo,
 }
 
-export interface StartSyncResult extends ResultBody {
+interface StartSyncResponseData extends ResponseData {
     success: boolean,
+}
+
+export class StartSyncRequest implements Request {
+    readonly type: SyncRequestType;
+    readonly data: StartSyncRequestData;
+
+    constructor(data: StartSyncRequestData) {
+        this.type = SyncRequestType.StartSync;
+        this.data = data;
+    }
 }
 
 export class SyncWorker extends Worker {
@@ -36,11 +46,11 @@ export class SyncWorker extends Worker {
 
     constructor() {
         super();
-        super.addHandler(SyncMessageType.StartSync, this.startSync.bind(this));
+        super.addHandler(SyncRequestType.StartSync, this.startSync.bind(this));
     }
 
-    async startSync(message: StartSyncMessage): Promise<StartSyncResult> {
-        const sessionInfo = message.sessionInfo;
+    async startSync(request: StartSyncRequest): Promise<StartSyncResponseData> {
+        const sessionInfo = request.data.sessionInfo;
         console.log(`Starting sync worker for session with id ${sessionInfo.id}`);
 
         this._platform = new WorkerPlatform({assetPaths});

@@ -1,5 +1,5 @@
-import {SyncMessageType} from "./SyncWorker";
 import {SessionInfoStorage} from "../../../matrix/sessioninfo/localstorage/SessionInfoStorage";
+import {StartSyncRequest} from "./SyncWorker";
 
 export type SessionId = string;
 
@@ -30,11 +30,15 @@ export class SyncWorkerPool {
         }
 
         const sessionInfo = await this._sessionInfoStorage.get(sessionId);
+        if (!sessionInfo) {
+            // TODO
+            return;
+        }
+
+        const message = new StartSyncRequest({sessionInfo})
         worker.postMessage({
-            type: SyncMessageType.StartSync,
-            body: {
-                sessionInfo: sessionInfo
-            },
+            type: message.type,
+            data: message.data,
         });
     }
 
