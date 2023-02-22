@@ -64,7 +64,7 @@ export class UnknownRoomViewModel extends ViewModel {
     // matrix.org can choose not to return messages for a world_readable room
     // so this getter is used to render the correct view, if it's possible to preview the room right now
     get previewPossible() {
-        return this._worldReadable && this._room;
+        return this._worldReadable && !! this._room;
     }
 
     get checkingPreviewCapability() {

@@ -236,7 +236,13 @@ export class SessionViewModel extends ViewModel {
             roomIdOrAlias,
             session: this._client.session,
         }));
-        void roomVM.load();
+        roomVM.load().then(() => {
+            if (roomVM.previewPossible) {
+                console.log('emitting middle');
+                this.emitChange("activeMiddleViewModel");
+                this.emitChange();
+            }
+        });
         return roomVM;
     }
 
