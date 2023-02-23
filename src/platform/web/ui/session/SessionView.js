@@ -60,7 +60,7 @@ export class SessionView extends TemplateView {
                         return new RoomView(vm.currentRoomViewModel, viewClassForTile);
                     } else if (vm.currentRoomViewModel.kind === "roomBeingCreated") {
                         return new RoomBeingCreatedView(vm.currentRoomViewModel);
-                    } else if (vm.currentRoomViewModel.kind === "worldReadableRoom") {
+                    } else if (vm.currentRoomViewModel.kind === "preview") {
                         return new WorldReadableRoomView(vm.currentRoomViewModel);
                     } else {
                         return new UnknownRoomView(vm.currentRoomViewModel);

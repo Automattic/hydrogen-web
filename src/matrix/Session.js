@@ -668,7 +668,8 @@ export class Session {
             mediaRepository: this._mediaRepository,
             pendingEvents: [],
             user: this._user,
-            platform: this._platform
+            platform: this._platform,
+            roomStateHandler: this._roomStateHandler
         });
     }
 

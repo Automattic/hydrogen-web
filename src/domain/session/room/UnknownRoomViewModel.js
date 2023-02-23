@@ -15,9 +15,6 @@ limitations under the License.
 */
 
 import {ViewModel} from "../../ViewModel";
-import {TimelineViewModel} from "./timeline/TimelineViewModel";
-import {tileClassForEntry as defaultTileClassForEntry} from "./timeline/tiles/index";
-import {getAvatarHttpUrl} from "../../avatar";
 
 export class UnknownRoomViewModel extends ViewModel {
     constructor(options) {
@@ -27,12 +24,6 @@ export class UnknownRoomViewModel extends ViewModel {
         this.roomIdOrAlias = roomIdOrAlias;
         this._error = null;
         this._busy = false;
-        this._worldReadable = false; // won't know until load() finishes with isWorldReadableRoom() call
-        this._checkingPreviewCapability = false; // won't know until load() finishes with isWorldReadableRoom() call
-    }
-
-    get room() {
-        return this._room;
     }
 
     get error() {
@@ -61,60 +52,7 @@ export class UnknownRoomViewModel extends ViewModel {
         return this._busy;
     }
 
-    // matrix.org can choose not to return messages for a world_readable room
-    // so this getter is used to render the correct view, if it's possible to preview the room right now
-    get previewPossible() {
-        return this._worldReadable && !! this._room;
-    }
-
-    get checkingPreviewCapability() {
-        return this._checkingPreviewCapability;
-    }
-
     get kind() {
-        return this._worldReadable ? "worldReadableRoom" : "unknown";
-    }
-
-    get timelineViewModel() {
-        return this._timelineVM;
-    }
-
-    avatarUrl(size) {
-        return getAvatarHttpUrl(this._room.avatarUrl, size, this.platform, this._room.mediaRepository);
-    }
-
-    async load() {
-        this._checkingPreviewCapability = true;
-        this._worldReadable = await this._session.isWorldReadableRoom(this.roomIdOrAlias);
-        this._checkingPreviewCapability = false;
-
-        if (!this._worldReadable) {
-            this.emitChange("checkingPreviewCapability");
-            return;
-        }
-
-        try {
-            this._room = await this._session.loadWorldReadableRoom(this.roomIdOrAlias);
-            const timeline = await this._room.openTimeline();
-            this._tileOptions = this.childOptions({
-                roomVM: this,
-                timeline,
-                tileClassForEntry: defaultTileClassForEntry,
-            });
-            this._timelineVM = this.track(new TimelineViewModel(this.childOptions({
-                tileOptions: this._tileOptions,
-                timeline,
-            })));
-            this.emitChange("timelineViewModel");
-        } catch (err) {
-            console.error(`room.openTimeline(): ${err.message}:\n${err.stack}`);
-            this._timelineError = err;
-            this.emitChange("error");
-        }
-    }
-
-    dispose() {
-        super.dispose();
-        void this._session.deleteWorldReadableRoomData(this.roomIdOrAlias);
+        return "unknown";
     }
 }
