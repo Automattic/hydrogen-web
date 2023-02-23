@@ -178,7 +178,7 @@ export class Platform {
 
         if (assetPaths.syncWorker && window.Worker) {
             this._syncWorkerPool = new SyncWorkerPool(this._assetPaths.syncWorker, this.sessionInfoStorage);
-            this._syncWorkerPool.add("1646528482480255");
+            this._syncWorkerPool.add("750343279252151");
         }
     }
 

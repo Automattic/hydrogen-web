@@ -34,17 +34,19 @@ export abstract class Worker {
         this._handlers.set(type, handler);
     }
 
-    async init(): Promise<void> {
+    protected async init(): Promise<void> {
         // Extending classes can override this method as needed to perform async initialization.
         return;
     }
 
-    start() {
+    async start() {
         if (self.onmessage) {
             throw `${this.class} is already started`;
         }
 
+        await this.init();
         self.onmessage = (event: MessageEvent) => void this.onRequest(event);
+        postMessage({ started: true });
     }
 
     private async onRequest(event: MessageEvent) {
@@ -55,7 +57,6 @@ export abstract class Worker {
 
     private async handle(request: Request): Promise<Response> {
         const handler = this._handlers.get(request.type);
-
         if (!handler) {
             throw `No handler is registered in ${this.class} for requests of type ${request.type}`;
         }
