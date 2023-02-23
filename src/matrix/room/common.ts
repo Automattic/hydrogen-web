@@ -35,7 +35,6 @@ export enum RoomStatus {
     Joined = 1 << 3,
     Replaced = 1 << 4,
     Archived = 1 << 5,
-    WorldReadable = 1 << 6,
 }
 
 export enum RoomType {
