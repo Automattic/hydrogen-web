@@ -232,10 +232,11 @@ export class SessionViewModel extends ViewModel {
         return null;
     }
 
-    _createUnknownRoomViewModel(roomIdOrAlias) {
+    _createUnknownRoomViewModel(roomIdOrAlias, isWorldReadablePromise) {
         return new UnknownRoomViewModel(this.childOptions({
             roomIdOrAlias,
             session: this._client.session,
+            isWorldReadablePromise: isWorldReadablePromise
         }));
     }
 

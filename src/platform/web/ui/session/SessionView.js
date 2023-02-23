@@ -17,7 +17,8 @@ limitations under the License.
 
 import {LeftPanelView} from "./leftpanel/LeftPanelView.js";
 import {RoomView} from "./room/RoomView.js";
-import {UnknownRoomView, WorldReadableRoomView} from "./room/UnknownRoomView.js";
+import {UnknownRoomView} from "./room/UnknownRoomView.js";
+import {WorldReadableRoomView} from "./room/WorldReadableRoomView.js";
 import {RoomBeingCreatedView} from "./room/RoomBeingCreatedView.js";
 import {InviteView} from "./room/InviteView.js";
 import {LightboxView} from "./room/LightboxView.js";

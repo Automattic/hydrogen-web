@@ -1161,7 +1161,7 @@ export class Session {
         });
     }
 
-    isWorldReadableRoom(roomIdOrAlias, log = null) {
+    async isWorldReadableRoom(roomIdOrAlias, log = null) {
         return this._platform.logger.wrapOrRun(log, "isWorldReadableRoom", async log => {
             try {
                 let roomId;

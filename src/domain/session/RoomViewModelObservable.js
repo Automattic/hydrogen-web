@@ -76,8 +76,18 @@ export class RoomViewModelObservable extends ObservableValue {
             return this._sessionViewModel._createRoomViewModelInstance(this.id);
         } else if (status & RoomStatus.Archived) {
             return await this._sessionViewModel._createArchivedRoomViewModel(this.id);
+        } else if (status & RoomStatus.WorldReadable) {
+            return await this._sessionViewModel._createWorldReadableRoomViewModel(this.id);
         } else {
-            return this._sessionViewModel._createUnknownRoomViewModel(this.id);
+            const {session} = this._sessionViewModel._client;
+            const statusObservable = await session.observeRoomStatus(this.id);
+            const isWorldReadablePromise = session.isWorldReadableRoom(this.id);
+            isWorldReadablePromise.then(isWorldReadable => {
+                if (isWorldReadable) {
+                    statusObservable.set(RoomStatus.WorldReadable);
+                }
+            });
+            return this._sessionViewModel._createUnknownRoomViewModel(this.id, isWorldReadablePromise);
         }
     }
 
