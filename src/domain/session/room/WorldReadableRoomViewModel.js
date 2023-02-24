@@ -38,6 +38,10 @@ export class WorldReadableRoomViewModel extends RoomViewModel {
 
     dispose() {
         super.dispose();
-        void this._session.deleteWorldReadableRoomData(this._room.id);
+
+        // if joining the room, _busy would be true and in that case don't delete records
+        if (!this._busy) {
+            void this._session.deleteWorldReadableRoomData(this._room.id);
+        }
     }
 }
