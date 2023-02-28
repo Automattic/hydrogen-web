@@ -215,6 +215,12 @@ export class HomeServerApi {
         }, options);
     }
 
+    guestLogin(initialDeviceDisplayName?: string, options?: BaseRequestOptions): IHomeServerRequest {
+        return this._unauthedRequest("POST", this._url("/register", CS_V3_PREFIX), { kind: "guest" }, {
+            initial_device_displayname: initialDeviceDisplayName ? initialDeviceDisplayName : 'Guest account on ' + this._homeserver,
+        });
+    }
+
     createFilter(userId: string, filter: Record<string, any>, options?: BaseRequestOptions): IHomeServerRequest {
         return this._post(`/user/${encodeURIComponent(userId)}/filter`, {}, filter, options);
     }
