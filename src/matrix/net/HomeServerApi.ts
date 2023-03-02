@@ -221,6 +221,10 @@ export class HomeServerApi {
         });
     }
 
+    whoami(): IHomeServerRequest {
+        return this._get( "/account/whoami", undefined, undefined, { prefix: CS_V3_PREFIX } );
+    }
+
     createFilter(userId: string, filter: Record<string, any>, options?: BaseRequestOptions): IHomeServerRequest {
         return this._post(`/user/${encodeURIComponent(userId)}/filter`, {}, filter, options);
     }
