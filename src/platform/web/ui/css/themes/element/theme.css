@@ -1024,7 +1024,7 @@ button.link {
     display: inline-block;
     margin: 0;
 }
-.WorldReadableRoomComposerView .joinRoomButton {
+.WorldReadableRoomComposerView .joinRoomButton, .WorldReadableRoomComposerView .loginButton{
     float: right;
 }
 
