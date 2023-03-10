@@ -4,6 +4,7 @@
         "emitDeclarationOnly": true,
         "rootDir": "src",
         "types": [],
+        "lib": ["ES2020"],
         "strictNullChecks": true,
         "noImplicitAny": false,
         "target": "ES2020",
