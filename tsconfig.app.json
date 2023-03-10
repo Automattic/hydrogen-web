@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": ".typescript/app",
+        "tsBuildInfoFile": ".typescript/app.tsbuildinfo",
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
