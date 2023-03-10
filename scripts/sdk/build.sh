@@ -13,7 +13,12 @@ yarn run vite build -c vite.sdk-lib-config.js
 # Remove sync-worker.js from SDK build.
 # TODO: Once SameSessionInMultipleTabs feature flag is globally enabled, remove the following line.
 rm -rf target/lib-build/assets
-yarn tsc -p tsconfig-declaration.json
+
+# Build typescript declarations.
+rm -rf .typescript/sdk .typescript/sdk.tsbuildinfo
+yarn tsc -p tsconfig.sdk.json
+cp -r .typescript/sdk target/types
+
 ./scripts/sdk/create-manifest.js ./target/package.json
 mkdir target/paths
 # this doesn't work, the ?url imports need to be in the consuming project, so disable for now
