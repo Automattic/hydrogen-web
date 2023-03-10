@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Despite being called main.js, this is the Olm worker.
+// TODO: Rename this file to olm-worker.js in a way that is backwards-compatible with the SDK.
+
 function asErrorMessage(err) {
     return {
         type: "error",
