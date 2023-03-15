@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// TODO: Figure out how to get WebWorkers Typescript lib working. For now we just disable checks on the whole file.
-// @ts-nocheck
-
 // The empty export makes this a module. It can be removed once there's at least one import.
 export {}
 
