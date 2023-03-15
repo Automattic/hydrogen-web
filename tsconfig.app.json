@@ -11,5 +11,8 @@
     ],
     "exclude": [
         "src/platform/workers"
+    ],
+    "references": [
+        { "path": "./tsconfig.shared.json" }
     ]
 }
