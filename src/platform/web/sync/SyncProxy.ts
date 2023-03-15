@@ -18,6 +18,7 @@ import {ISync} from "../../../matrix/ISync";
 import {ObservableValue} from "../../../observable/value";
 import {SyncStatus} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
+import {makeSyncWorker} from "./make-worker";
 
 type Options = {
     session: Session;
@@ -43,9 +44,13 @@ export class SyncProxy implements ISync {
     }
 
     async start(): Promise<void> {
-        this._worker = new SharedWorker(new URL("../../workers/sync-worker", import.meta.url), {
-            type: "module",
-        });
+        const sessionId = this._session.sessionId;
+        if (!sessionId) {
+            // Should never happen, but if it does, we must not spawn the worker.
+            throw `sessionId is required for starting the sync worker`;
+        }
+
+        this._worker = makeSyncWorker(sessionId) as SharedWorker;
         this._worker.port.onmessage = (event: MessageEvent) => {
             // TODO
             console.log(event);
