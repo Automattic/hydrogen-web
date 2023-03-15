@@ -19,7 +19,7 @@ limitations under the License.
 // TODO: When vite addresses this, this code can be moved to SyncProxy.ts.
 
 export function makeSyncWorker(sessionId) {
-    return new SharedWorker(new URL("../../workers/sync-worker", import.meta.url), {
+    return new SharedWorker(new URL("../../workers/sync/sync-worker", import.meta.url), {
         /* @vite-ignore */
         name: sessionId,
         type: "module",
