@@ -6,5 +6,6 @@
         "tsBuildInfoFile": ".typescript/shared.tsbuildinfo"
     },
     "include": [
+        "src/platform/workers/types/**/*"
     ]
 }

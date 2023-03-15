@@ -10,6 +10,9 @@
     "include": [
         "src/platform/workers/**/*"
     ],
+    "exclude": [
+        "src/platform/workers/types"
+    ],
     "references": [
         { "path": "./tsconfig.shared.json" }
     ]
