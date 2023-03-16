@@ -14,13 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// The empty export makes this a module. It can be removed once there's at least one import.
-export {}
+import {SyncWorker} from "./SyncWorker";
 
-declare let self: SharedWorkerGlobalScope;
-
-self.onconnect = (event: MessageEvent) => {
-    const port = event.ports[0];
-    port.postMessage("hello from sync worker");
-    console.log("hello from sync worker");
-}
+// @ts-ignore
+self.syncWorker = new SyncWorker();

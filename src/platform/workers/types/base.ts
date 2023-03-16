@@ -7,8 +7,16 @@ export interface Request {
     data: object;
 }
 
+export function makeRequestId(): RequestId {
+    return makeId() as RequestId;
+}
+
 export interface Response {
     request: Request;
     error?: Error;
     data?: object;
+}
+
+function makeId(): string {
+    return (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).toString();
 }
