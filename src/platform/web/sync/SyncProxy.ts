@@ -19,20 +19,32 @@ import {ObservableValue} from "../../../observable/value";
 import {SyncStatus} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
 import {makeSyncWorker} from "./make-worker";
+import {StartSyncRequest, StartSyncResponse, SyncRequestType} from "../../workers/types/sync";
+import {WorkerProxy} from "../worker/WorkerProxy";
+import {makeRequestId} from "../../workers/types/base";
 
 type Options = {
     session: Session;
 }
 
 export class SyncProxy implements ISync {
-    private _session: Session;
+    private readonly _session: Session;
+    private readonly _workerProxy: WorkerProxy;
     private readonly _status: ObservableValue<SyncStatus> = new ObservableValue(SyncStatus.Stopped);
     private _error: Error | null = null;
-    private _worker?: SharedWorker;
 
     constructor(options: Options) {
         const {session} = options;
         this._session = session;
+
+        const sessionId = this._session.sessionId;
+        if (!sessionId) {
+            // Should never happen, but if it does, we must not spawn the worker.
+            throw `sessionId is required for starting the sync worker`;
+        }
+
+        const workerId = `sync-${sessionId}`;
+        this._workerProxy = new WorkerProxy(makeSyncWorker(workerId) as SharedWorker);
     }
 
     get status(): ObservableValue<SyncStatus> {
@@ -44,20 +56,25 @@ export class SyncProxy implements ISync {
     }
 
     async start(): Promise<void> {
-        const sessionId = this._session.sessionId;
-        if (!sessionId) {
-            // Should never happen, but if it does, we must not spawn the worker.
-            throw `sessionId is required for starting the sync worker`;
+        const request: StartSyncRequest = {
+            id: makeRequestId(),
+            type: SyncRequestType.StartSync,
+            data: {
+                sessionId: this._session.sessionId,
+            }
+        };
+
+        const response = await this._workerProxy.sendAndWaitForResponse(request) as StartSyncResponse;
+        if (response?.error) {
+            throw response.error;
         }
 
-        this._worker = makeSyncWorker(sessionId) as SharedWorker;
-        this._worker.port.onmessage = (event: MessageEvent) => {
-            // TODO
-            console.log(event);
-        };
+        // TODO
+        console.log(response);
     }
 
     stop(): void {
         // TODO
     }
+
 }
