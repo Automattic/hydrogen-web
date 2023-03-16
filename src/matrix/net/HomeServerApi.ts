@@ -129,6 +129,10 @@ export class HomeServerApi {
         return this._get("/sync", {since, timeout, filter}, undefined, options);
     }
 
+    resolveRoomAlias(roomAlias: string): IHomeServerRequest {
+        return this._unauthedRequest( "GET", this._url( `/directory/room/${encodeURIComponent(roomAlias)}`, CS_V3_PREFIX ) );
+    }
+
     context(roomId: string, eventId: string, limit: number, filter: string): IHomeServerRequest {
         return this._get(`/rooms/${encodeURIComponent(roomId)}/context/${encodeURIComponent(eventId)}`, {filter, limit});
     }
@@ -162,6 +166,10 @@ export class HomeServerApi {
     
     sendState(roomId: string, eventType: string, stateKey: string, content: Record<string, any>, options?: BaseRequestOptions): IHomeServerRequest {
         return this._put(`/rooms/${encodeURIComponent(roomId)}/state/${encodeURIComponent(eventType)}/${encodeURIComponent(stateKey)}`, {}, content, options);
+    }
+
+    currentState(roomId: string): IHomeServerRequest {
+        return this._get(`/rooms/${encodeURIComponent(roomId)}/state`, {}, undefined);
     }
 
     getLoginFlows(): IHomeServerRequest {
@@ -205,6 +213,16 @@ export class HomeServerApi {
           "txn_id": txnId,
           "initial_device_display_name": initialDeviceDisplayName
         }, options);
+    }
+
+    guestLogin(initialDeviceDisplayName?: string, options?: BaseRequestOptions): IHomeServerRequest {
+        return this._unauthedRequest("POST", this._url("/register", CS_V3_PREFIX), { kind: "guest" }, {
+            initial_device_displayname: initialDeviceDisplayName ? initialDeviceDisplayName : 'Guest account on ' + this._homeserver,
+        });
+    }
+
+    whoami(): IHomeServerRequest {
+        return this._get( "/account/whoami", undefined, undefined, { prefix: CS_V3_PREFIX } );
     }
 
     createFilter(userId: string, filter: Record<string, any>, options?: BaseRequestOptions): IHomeServerRequest {

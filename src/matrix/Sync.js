@@ -175,7 +175,8 @@ export class Sync {
 
     async _syncRequest(syncToken, timeout, log) {
         let {syncFilterId} = this._session;
-        if (typeof syncFilterId !== "string") {
+        let isGuest = await this._session.isGuest();
+        if (!isGuest && typeof syncFilterId !== "string") {
             this._currentRequest = this._hsApi.createFilter(this._session.user.id, {room: {state: {lazy_load_members: true}}}, {log});
             syncFilterId = (await this._currentRequest.response()).filter_id;
         }
