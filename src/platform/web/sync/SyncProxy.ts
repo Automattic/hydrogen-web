@@ -19,8 +19,15 @@ import {ObservableValue} from "../../../observable/value";
 import {SyncStatus} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
 import {makeSyncWorker} from "./make-worker";
-import {StartSyncRequest, StartSyncResponse, SyncRequestType} from "../../workers/types/sync";
+import {
+    StartSyncRequest,
+    StartSyncResponse,
+    SyncEvent,
+    SyncRequestType,
+    SyncStatusChanged
+} from "../../workers/types/sync";
 import {WorkerProxy} from "../worker/WorkerProxy";
+import {EventBus} from "../worker/EventBus";
 import {makeRequestId} from "../../workers/types/base";
 
 type Options = {
@@ -30,6 +37,7 @@ type Options = {
 export class SyncProxy implements ISync {
     private readonly _session: Session;
     private readonly _workerProxy: WorkerProxy;
+    private readonly _eventBus: EventBus;
     private readonly _status: ObservableValue<SyncStatus> = new ObservableValue(SyncStatus.Stopped);
     private _error: Error | null = null;
 
@@ -45,6 +53,8 @@ export class SyncProxy implements ISync {
 
         const workerId = `sync-${sessionId}`;
         this._workerProxy = new WorkerProxy(makeSyncWorker(workerId) as SharedWorker);
+        this._eventBus = new EventBus(workerId);
+        this._eventBus.setListener(SyncEvent.StatusChanged, this.onStatusChanged.bind(this));
     }
 
     get status(): ObservableValue<SyncStatus> {
@@ -77,4 +87,7 @@ export class SyncProxy implements ISync {
         // TODO
     }
 
+    private onStatusChanged(event: SyncStatusChanged): void {
+        this._status.set(event.data.newValue);
+    }
 }
