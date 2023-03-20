@@ -1,0 +1,17 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": ".typescript/sdk",
+        "tsBuildInfoFile": ".typescript/sdk.tsbuildinfo",
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "emitDeclarationOnly": true,
+        "declaration": true,
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "src/platform/workers"
+    ]
+}

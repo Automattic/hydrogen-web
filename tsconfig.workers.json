@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": ".typescript/workers",
+        "tsBuildInfoFile": ".typescript/workers.tsbuildinfo",
+        "lib": ["ES2020", "WebWorker"],
+        "emitDeclarationOnly": false
+    },
+    "include": [
+        "src/platform/workers/**/*"
+    ]
+}
