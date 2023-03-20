@@ -1,4 +1,8 @@
-import {Request, Response} from "./base";
+import {Request, Response, Event} from "./base";
+
+//
+// Requests/Responses
+//
 
 export enum SyncRequestType {
     StartSync = "StartSync",
@@ -13,4 +17,19 @@ export interface StartSyncRequest extends Request {
 export interface StartSyncResponse extends Response {
     request: StartSyncRequest;
     data: {}
+}
+
+//
+// Events
+//
+
+export enum SyncEvent {
+    StatusChanged = "StatusChanged",
+}
+
+export interface SyncStatusChanged extends Event {
+    type: SyncEvent.StatusChanged;
+    data: {
+        newValue: string,
+    }
 }
