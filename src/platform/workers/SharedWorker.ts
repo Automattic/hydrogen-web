@@ -23,4 +23,8 @@ export abstract class SharedWorker extends BaseWorker {
         const response = await this.handleRequest(request);
         port.postMessage(response);
     }
+
+    protected get name(): string {
+        return self.name;
+    }
 }
