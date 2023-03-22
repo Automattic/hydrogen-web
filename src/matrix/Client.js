@@ -243,6 +243,15 @@ export class Client {
         const clock = this._platform.clock;
         this._sessionStartedByReconnector = false;
         this._status.set(LoadStatus.Loading);
+        this._sessionId = sessionInfo.id;
+        this._storage = await this._platform.storageFactory.create(sessionInfo.id, log);
+
+        const olm = await this._olmPromise;
+        let olmWorker = null;
+        if (this._workerPromise) {
+            olmWorker = await this._workerPromise;
+        }
+
         this._reconnector = new Reconnector({
             onlineStatus: this._platform.onlineStatus,
             retryDelay: new ExponentialRetryDelay(clock.createTimeout),
@@ -254,8 +263,14 @@ export class Client {
             request: this._platform.request,
             reconnector: this._reconnector,
         });
-        this._sessionId = sessionInfo.id;
-        this._storage = await this._platform.storageFactory.create(sessionInfo.id, log);
+
+        this._requestScheduler = new RequestScheduler({hsApi, clock});
+        this._requestScheduler.start();
+        const mediaRepository = new MediaRepository({
+            homeserver: sessionInfo.homeServer,
+            platform: this._platform,
+        });
+
         // no need to pass access token to session
         const filteredSessionInfo = {
             id: sessionInfo.id,
@@ -263,17 +278,6 @@ export class Client {
             userId: sessionInfo.userId,
             homeserver: sessionInfo.homeServer,
         };
-        const olm = await this._olmPromise;
-        let olmWorker = null;
-        if (this._workerPromise) {
-            olmWorker = await this._workerPromise;
-        }
-        this._requestScheduler = new RequestScheduler({hsApi, clock});
-        this._requestScheduler.start();
-        const mediaRepository = new MediaRepository({
-            homeserver: sessionInfo.homeServer,
-            platform: this._platform,
-        });
         this._session = new Session({
             storage: this._storage,
             sessionInfo: filteredSessionInfo,
