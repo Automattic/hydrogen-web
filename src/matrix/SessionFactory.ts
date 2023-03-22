@@ -63,19 +63,11 @@ export class SessionFactory {
             platform: this._platform,
         });
 
-        // no need to pass access token to session
-        const filteredSessionInfo = {
-            id: sessionInfo.id,
-            deviceId: sessionInfo.deviceId,
-            userId: sessionInfo.userId,
-            homeserver: sessionInfo.homeServer,
-        };
-
         const session = new Session({
             platform: this._platform,
             features: this._features,
             storage: storage,
-            sessionInfo: filteredSessionInfo,
+            sessionInfo: sessionInfo,
             hsApi: scheduler.hsApi,
             olm,
             olmWorker,

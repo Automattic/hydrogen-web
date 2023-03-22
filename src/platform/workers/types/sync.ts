@@ -12,6 +12,10 @@ export interface StartSyncRequest extends Request {
     type: SyncRequestType.StartSync;
     data: {
         sessionId: string,
+        deviceId: string,
+        userId: string,
+        homeserver: string,
+        accessToken: string,
     }
 }
 export interface StartSyncResponse extends Response {
