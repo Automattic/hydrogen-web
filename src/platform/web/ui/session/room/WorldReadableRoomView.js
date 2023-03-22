@@ -40,7 +40,7 @@ export class WorldReadableRoomView extends TemplateView {
                     t.if(vm => !vm.joinAllowed, t => t.button({
                         className: "loginButton",
                         onClick: () => vm.login(),
-                    }, vm.i18n`Login`))
+                    }, vm.i18n`Log In`))
                 ])
             ])
         ]);
