@@ -32,6 +32,8 @@ import {SSOLoginHelper} from "./login/SSOLoginHelper";
 import {getDehydratedDevice} from "./e2ee/Dehydration.js";
 import {Registration} from "./registration/Registration";
 import {FeatureSet} from "../features";
+import {SessionFactory} from "./SessionFactory";
+import {Storage} from "./storage/idb/Storage";
 
 export const LoadStatus = createEnum(
     "NotLoading",
@@ -75,6 +77,7 @@ export class Client {
             retryDelay: new ExponentialRetryDelay(this._platform.clock.createTimeout),
             createMeasure: this._platform.clock.createMeasure
         });
+        this._sessionFactory = new SessionFactory({platform, features, reconnector: this._reconnector});
     }
 
     createNewSessionId() {
@@ -245,7 +248,6 @@ export class Client {
             throw new Error("Invalid session id: " + sessionId);
         }
 
-        const clock = this._platform.clock;
         this._sessionStartedByReconnector = false;
         this._status.set(LoadStatus.Loading);
         this._sessionId = sessionInfo.id;
@@ -259,38 +261,17 @@ export class Client {
 
         this._reconnector.start();
 
-        const hsApi = new HomeServerApi({
-            homeserver: sessionInfo.homeServer,
-            accessToken: sessionInfo.accessToken,
-            request: this._platform.request,
-            reconnector: this._reconnector,
-        });
-
-        this._requestScheduler = new RequestScheduler({hsApi, clock});
-        this._requestScheduler.start();
-        const mediaRepository = new MediaRepository({
-            homeserver: sessionInfo.homeServer,
-            platform: this._platform,
-        });
-
-        // no need to pass access token to session
-        const filteredSessionInfo = {
-            id: sessionInfo.id,
-            deviceId: sessionInfo.deviceId,
-            userId: sessionInfo.userId,
-            homeserver: sessionInfo.homeServer,
-        };
-        this._session = new Session({
+        const {session, scheduler} = this._sessionFactory.make({
             storage: this._storage,
-            sessionInfo: filteredSessionInfo,
-            hsApi: this._requestScheduler.hsApi,
             olm,
             olmWorker,
-            mediaRepository,
-            platform: this._platform,
-            features: this._features
+            sessionInfo,
         });
+        this._session = session;
+        this._requestScheduler = scheduler;
+        this._requestScheduler.start();
         await this._session.load(log);
+
         if (dehydratedDevice) {
             await log.wrap("dehydrateIdentity", log => this._session.dehydrateIdentity(dehydratedDevice, log));
             await this._session.setupDehydratedDevice(dehydratedDevice.key, log);
@@ -329,7 +310,7 @@ export class Client {
         // started to session, so check first
         // to prevent an extra /versions request
         if (!this._sessionStartedByReconnector) {
-            const lastVersionsResponse = await hsApi.versions({timeout: 10000, log}).response();
+            const lastVersionsResponse = await this._requestScheduler.hsApi.versions({timeout: 10000, log}).response();
             if (this._isDisposed) {
                 return;
             }
