@@ -1,13 +1,18 @@
 import {SharedWorker} from "../SharedWorker";
 import {StartSyncRequest, StartSyncResponse, SyncEvent, SyncRequestType, SyncStatusChanged} from "../types/sync";
 import {Event, makeEventId} from "../types/base";
+import {SyncPlatform} from "./SyncPlatform";
+import assetPaths from "../../web/sdk/paths/vite";
 
 export class SyncWorker extends SharedWorker {
     private readonly _eventBus: BroadcastChannel;
+    private readonly _platform: SyncPlatform;
 
     constructor() {
         super();
         this._eventBus = new BroadcastChannel(this.name);
+        this._platform = new SyncPlatform({assetPaths});
+
         this.setHandler(SyncRequestType.StartSync, this.startSync.bind(this));
     }
 
