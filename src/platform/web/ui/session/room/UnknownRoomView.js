@@ -25,11 +25,11 @@ export class UnknownRoomView extends TemplateView {
                 t.br(),
                 vm.i18n`Want to join it?`
             ]),
-            t.button({
+            t.if(vm => vm.joinAllowed, t => t.button({
                 className: "button-action primary",
                 onClick: () => vm.join(),
                 disabled: vm => vm.busy,
-            }, vm.i18n`Join room`),
+            }, vm.i18n`Join room`)),
             t.br(),
             t.if(vm => vm.checkingPreviewCapability, t => t.div({className: "checkingPreviewCapability"}, [
                 spinner(t),

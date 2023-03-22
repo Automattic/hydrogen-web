@@ -19,21 +19,33 @@ import {ViewModel} from "../../ViewModel";
 export class UnknownRoomViewModel extends ViewModel {
     constructor(options) {
         super(options);
-        const {roomIdOrAlias, session, isWorldReadablePromise} = options;
+        const {roomIdOrAlias, session, isWorldReadablePromise, guestJoinAllowed} = options;
         this._session = session;
         this.roomIdOrAlias = roomIdOrAlias;
         this._error = null;
         this._busy = false;
+        this._guestJoinAllowed = typeof guestJoinAllowed !== 'undefined' && guestJoinAllowed;
 
         this.checkingPreviewCapability = true;
         isWorldReadablePromise.then(() => {
             this.checkingPreviewCapability = false;
             this.emitChange('checkingPreviewCapability');
         })
+
+        // join allowed for the current user/session?
+        this._joinAllowed = false;
+        this._session.isGuest().then((isGuest) => {
+            this._joinAllowed = isGuest ? this._guestJoinAllowed : true;
+            this.emitChange('joinAllowed');
+        });
     }
 
     get error() {
         return this._error?.message;
+    }
+
+    get joinAllowed() {
+        return this._joinAllowed;
     }
 
     async join() {

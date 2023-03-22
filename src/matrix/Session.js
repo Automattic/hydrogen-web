@@ -134,6 +134,15 @@ export class Session {
         return this._callHandler;
     }
 
+    async isGuest() {
+        if (typeof this._guestUser !== 'undefined') {
+            return this._guestUser;
+        }
+        const whoami = await this._hsApi.whoami().response();
+        this._guestUser = whoami.is_guest;
+        return Boolean(whoami.is_guest);
+    }
+
     _setupCallHandler() {
         this._callHandler = new CallHandler({
             clock: this._platform.clock,

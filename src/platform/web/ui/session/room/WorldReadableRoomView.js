@@ -32,11 +32,15 @@ export class WorldReadableRoomView extends TemplateView {
                 }),
                 t.div({className: "WorldReadableRoomComposerView"}, [
                     t.h3(vm => vm.i18n`Join the room to participate`),
-                    t.button({
+                    t.if(vm => vm.joinAllowed, t => t.button({
                         className: "joinRoomButton",
                         onClick: () => vm.join(),
                         disabled: vm => vm.busy,
-                    }, vm.i18n`Join Room`)
+                    }, vm.i18n`Join Room`)),
+                    t.if(vm => !vm.joinAllowed, t => t.button({
+                        className: "loginButton",
+                        onClick: () => vm.login(),
+                    }, vm.i18n`Log In`))
                 ])
             ])
         ]);

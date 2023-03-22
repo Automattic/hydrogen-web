@@ -4,10 +4,19 @@ export class WorldReadableRoomViewModel extends RoomViewModel {
     constructor(options) {
         options.room.isWorldReadable = true;
         super(options);
-        this._room = options.room;
-        this._session = options.session;
+        const {room, session, guestJoinAllowed} = options;
+        this._room = room;
+        this._session = session;
         this._error = null;
         this._busy = false;
+        this._guestJoinAllowed = typeof guestJoinAllowed !== 'undefined' && guestJoinAllowed;
+
+        // join allowed for the current user/session?
+        this._joinAllowed = false;
+        this._session.isGuest().then((isGuest) => {
+            this._joinAllowed = isGuest ? this._guestJoinAllowed : true;
+            this.emitChange('joinAllowed');
+        });
     }
 
     get kind() {
@@ -16,6 +25,10 @@ export class WorldReadableRoomViewModel extends RoomViewModel {
 
     get busy() {
         return this._busy;
+    }
+
+    get joinAllowed() {
+        return this._joinAllowed;
     }
 
     async join() {
@@ -34,6 +47,10 @@ export class WorldReadableRoomViewModel extends RoomViewModel {
             this._busy = false;
             this.emitChange("error");
         }
+    }
+
+    login() {
+        this.navigation.push("login");
     }
 
     dispose() {
