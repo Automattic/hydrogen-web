@@ -9,11 +9,14 @@ import {OnlineStatus} from "../../web/dom/OnlineStatus";
 import {SessionFactory} from "../../../matrix/SessionFactory";
 import {FeatureSet} from "../../../features";
 import {StorageFactory} from "../../../matrix/storage/idb/StorageFactory";
+import {Logger} from "../../../logging/Logger";
+import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 
 export class SyncWorker extends SharedWorker {
     private readonly _eventBus: BroadcastChannel;
     private readonly _platform: SyncPlatform;
     private readonly _features: FeatureSet;
+    private readonly _logger: Logger;
     private readonly _storageFactory: StorageFactory;
     private readonly _onlineStatus: OnlineStatus;
     private readonly _reconnector: Reconnector;
@@ -24,6 +27,8 @@ export class SyncWorker extends SharedWorker {
         this._eventBus = new BroadcastChannel(this.name);
         this._platform = new SyncPlatform({assetPaths});
         this._features = new FeatureSet;
+        this._logger = new Logger({platform: this._platform});
+        this._logger.addReporter(new ConsoleReporter());
         this._storageFactory = new StorageFactory;
         this._onlineStatus = new OnlineStatus;
         this._reconnector = new Reconnector({
