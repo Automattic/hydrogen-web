@@ -298,7 +298,7 @@ export class Client {
         }
 
         this._sync = this._platform.syncFactory.make({
-            scheduler: this._requestScheduler,
+            hsApi: this._requestScheduler.hsApi,
             storage: this._storage,
             session: this._session,
         });

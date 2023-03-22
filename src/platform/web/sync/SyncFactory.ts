@@ -22,6 +22,7 @@ import {Logger} from "../../../logging/Logger";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {FeatureSet} from "../../../features";
 import {SyncProxy} from "./SyncProxy";
+import {HomeServerApi} from "../../../matrix/net/HomeServerApi";
 
 type Options = {
     logger: Logger;
@@ -29,7 +30,7 @@ type Options = {
 }
 
 type MakeOptions = {
-    scheduler: RequestScheduler;
+    hsApi: HomeServerApi;
     storage: Storage;
     session: Session;
 }
@@ -45,7 +46,7 @@ export class SyncFactory {
     }
 
     make(options: MakeOptions): ISync {
-        const {scheduler, storage, session} = options;
+        const {hsApi, storage, session} = options;
         let runSyncInWorker = this._features.sameSessionInMultipleTabs;
 
         if (typeof SharedWorker === "undefined") {
@@ -58,7 +59,7 @@ export class SyncFactory {
 
         return new Sync({
             logger: this._logger,
-            hsApi: scheduler.hsApi,
+            hsApi: hsApi,
             storage,
             session,
         });
