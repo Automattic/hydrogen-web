@@ -88,11 +88,7 @@ export class Client {
         await this._platform.logger.run("load session", async log => {
             log.set("id", sessionId);
             try {
-                const sessionInfo = await this._platform.sessionInfoStorage.get(sessionId);
-                if (!sessionInfo) {
-                    throw new Error("Invalid session id: " + sessionId);
-                }
-                await this._loadSessionInfo(sessionInfo, null, log);
+                await this._loadSessionInfo(sessionId, null, log);
                 log.set("status", this._status.get());
             } catch (err) {
                 log.catch(err);
@@ -225,7 +221,7 @@ export class Client {
         // LoadStatus.Error in case of an error,
         // so separate try/catch
         try {
-            await this._loadSessionInfo(sessionInfo, dehydratedDevice, log);
+            await this._loadSessionInfo(id, dehydratedDevice, log);
             log.set("status", this._status.get());
         } catch (err) {
             log.catch(err);
@@ -236,8 +232,14 @@ export class Client {
         }
     }
 
-    async _loadSessionInfo(sessionInfo, dehydratedDevice, log) {
+    async _loadSessionInfo(sessionId, dehydratedDevice, log) {
         log.set("appVersion", this._platform.version);
+
+        const sessionInfo = await this._platform.sessionInfoStorage.get(sessionId);
+        if (!sessionInfo) {
+            throw new Error("Invalid session id: " + sessionId);
+        }
+
         const clock = this._platform.clock;
         this._sessionStartedByReconnector = false;
         this._status.set(LoadStatus.Loading);
