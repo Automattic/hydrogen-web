@@ -14,6 +14,7 @@ import {Logger} from "../../../logging/Logger";
 import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {RequestScheduler} from "../../../matrix/net/RequestScheduler";
+import {Sync} from "../../../matrix/Sync";
 
 export class SyncWorker extends SharedWorker {
     private readonly _eventBus: BroadcastChannel;
@@ -27,6 +28,7 @@ export class SyncWorker extends SharedWorker {
     private _session?: Session;
     private _storage?: Storage;
     private _scheduler?: RequestScheduler;
+    private _sync?: Sync;
 
     constructor() {
         super();
@@ -52,12 +54,24 @@ export class SyncWorker extends SharedWorker {
     }
 
     async startSync(request: StartSyncRequest): Promise<StartSyncResponse> {
+        const response: StartSyncResponse = {request, data: {}};
+        if (this._sync) {
+            return response;
+        }
+
         const {session, storage, scheduler} = await this.loadSession(request);
         this._session = session;
         this._storage = storage;
         this._scheduler = scheduler;
 
-        const response: StartSyncResponse = {request, data: {}};
+        this._sync = new Sync({
+            logger: this._logger,
+            hsApi: this._scheduler.hsApi,
+            session: this._session,
+            storage: this._storage,
+        })
+
+        this._sync.start();
 
         const event: SyncStatusChanged = {
             id: makeEventId(),
@@ -74,7 +88,6 @@ export class SyncWorker extends SharedWorker {
     broadcastEvent(event: Event) {
         this._eventBus.postMessage(event);
     }
-
 
     private async loadSession(request: StartSyncRequest): Promise<{session: Session, storage: Storage, scheduler: RequestScheduler}> {
         const sessionInfo = {
