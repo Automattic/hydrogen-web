@@ -70,6 +70,11 @@ export class Client {
         this._workerPromise = platform.loadOlmWorker();
         this._accountSetup = undefined;
         this._features = features;
+        this._reconnector = new Reconnector({
+            onlineStatus: this._platform.onlineStatus,
+            retryDelay: new ExponentialRetryDelay(this._platform.clock.createTimeout),
+            createMeasure: this._platform.clock.createMeasure
+        });
     }
 
     createNewSessionId() {
@@ -252,11 +257,8 @@ export class Client {
             olmWorker = await this._workerPromise;
         }
 
-        this._reconnector = new Reconnector({
-            onlineStatus: this._platform.onlineStatus,
-            retryDelay: new ExponentialRetryDelay(clock.createTimeout),
-            createMeasure: clock.createMeasure
-        });
+        this._reconnector.start();
+
         const hsApi = new HomeServerApi({
             homeserver: sessionInfo.homeServer,
             accessToken: sessionInfo.accessToken,
@@ -430,7 +432,7 @@ export class Client {
     }
 
     get _isDisposed() {
-        return !this._reconnector;
+        return !this._reconnector.isStarted;
     }
 
     startLogout(sessionId) {
@@ -466,7 +468,7 @@ export class Client {
             this._reconnectSubscription();
             this._reconnectSubscription = null;
         }
-        this._reconnector = null;
+        this._reconnector.stop();
         if (this._requestScheduler) {
             this._requestScheduler.stop();
             this._requestScheduler = null;
