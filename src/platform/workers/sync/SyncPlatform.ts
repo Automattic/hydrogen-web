@@ -1,21 +1,43 @@
 import {Clock} from "../../web/dom/Clock";
 import {RequestFunction} from "../../types/types";
 import {createFetchRequest} from "../../web/dom/request/fetch";
+import type * as OlmNamespace from "@matrix-org/olm";
+type Olm = typeof OlmNamespace;
 
-// Same as Platform but only implements methods called by Sync.
+type Assets = {
+    olmWasmJsPath: string,
+    olmWasmPath: string,
+}
+
+type Options = {
+    assets: Assets,
+}
+
+// Same as Platform but only implements methods needed to run sync.
 export class SyncPlatform {
     private readonly _clock: Clock;
-    private _assetPaths: any;
     private readonly _request: RequestFunction;
+    private readonly _assets: Assets;
+    private _olm: Olm;
 
-    constructor({assetPaths}) {
-        this._assetPaths = assetPaths;
+    constructor(options: Options) {
+        const {assets} = options;
+        this._assets = assets;
         this._clock = new Clock;
         this._request = createFetchRequest(this._clock.createTimeout);
     }
 
-    loadOlm() {
-        return null;
+    async loadOlm(): Promise<Olm> {
+        // @ts-ignore
+        self.window = self;
+        // @ts-ignore
+        self.document = {};
+
+        importScripts(this._assets.olmWasmJsPath);
+        this._olm = self.Olm;
+        await this._olm.init({locateFile: () => this._assets.olmWasmPath});
+
+        return this._olm;
     }
 
     async loadOlmWorker() {

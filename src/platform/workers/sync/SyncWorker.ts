@@ -2,7 +2,6 @@ import {SharedWorker} from "../SharedWorker";
 import {StartSyncRequest, StartSyncResponse, SyncEvent, SyncRequestType, SyncStatusChanged} from "../types/sync";
 import {Event, makeEventId} from "../types/base";
 import {SyncPlatform} from "./SyncPlatform";
-import assetPaths from "../../web/sdk/paths/vite";
 import {Reconnector} from "../../../matrix/net/Reconnector";
 import {ExponentialRetryDelay} from "../../../matrix/net/ExponentialRetryDelay";
 import {OnlineStatus} from "../../web/dom/OnlineStatus";
@@ -15,6 +14,15 @@ import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {RequestScheduler} from "../../../matrix/net/RequestScheduler";
 import {Sync} from "../../../matrix/Sync";
+
+type Assets = {
+    olmWasmJsPath: string,
+    olmWasmPath: string,
+}
+
+type Options = {
+    assets: Assets,
+}
 
 export class SyncWorker extends SharedWorker {
     private readonly _eventBus: BroadcastChannel;
@@ -30,10 +38,11 @@ export class SyncWorker extends SharedWorker {
     private _scheduler?: RequestScheduler;
     private _sync?: Sync;
 
-    constructor() {
+    constructor(options: Options) {
         super();
+        const {assets} = options;
         this._eventBus = new BroadcastChannel(this.name);
-        this._platform = new SyncPlatform({assetPaths});
+        this._platform = new SyncPlatform({assets});
         this._features = new FeatureSet;
         this._logger = new Logger({platform: this._platform});
         this._logger.addReporter(new ConsoleReporter());
@@ -60,6 +69,12 @@ export class SyncWorker extends SharedWorker {
         }
 
         const {session, storage, scheduler} = await this.loadSession(request);
+        if (!session.hasIdentity) {
+            // We should never get here, but in case we do, we must not proceed.
+            response.error = new Error("Sync was started before the session was correctly initiated");
+            return response;
+        }
+
         this._session = session;
         this._storage = storage;
         this._scheduler = scheduler;
@@ -103,8 +118,8 @@ export class SyncWorker extends SharedWorker {
             storage = await this._storageFactory.create(sessionInfo.id, log)
         });
 
-        const olm = null;
-        const olmWorker = null;
+        const olm = await this._platform.loadOlm();
+        const olmWorker = await this._platform.loadOlmWorker();
         const {session, scheduler} = this._sessionFactory.make({
             storage,
             olm,
