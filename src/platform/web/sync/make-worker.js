@@ -22,6 +22,5 @@ export function makeSyncWorker(name) {
     return new SharedWorker(new URL("../../workers/sync/sync-worker", import.meta.url), {
         /* @vite-ignore */
         name: name,
-        type: "module",
     });
 }
