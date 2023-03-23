@@ -53,6 +53,11 @@ export class SyncFactory {
             runSyncInWorker = false;
         }
 
+        if (!window.WebAssembly) {
+            // Sync worker currently only supports Olm through Wasm.
+            runSyncInWorker = false;
+        }
+
         if (runSyncInWorker) {
             return new SyncProxy({session});
         }
