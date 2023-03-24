@@ -1,4 +1,5 @@
 import {Request, Response, Event} from "./base";
+import {DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
 
 //
 // Requests/Responses
@@ -29,11 +30,27 @@ export interface StartSyncResponse extends Response {
 
 export enum SyncEvent {
     StatusChanged = "StatusChanged",
+    SyncChanges = "SyncChanges",
 }
 
 export interface SyncStatusChanged extends Event {
     type: SyncEvent.StatusChanged;
     data: {
         newValue: string,
+    }
+}
+
+export interface SyncChanges extends Event {
+    type: SyncEvent.SyncChanges;
+    data: {
+        session: {
+            syncInfo: {
+                token: string,
+                filterId: string,
+            },
+            hasNewRoomKeys: boolean,
+            e2eeAccountChanges?: number,
+            deviceMessageDecryptionResults: DecryptionResult[]|null,
+        },
     }
 }
