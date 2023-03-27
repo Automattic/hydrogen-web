@@ -12,3 +12,6 @@ As of now, this uses the following PRs on top of Hydrogen's v0.3.8 release:
 - Fix normalizing of homeserver [#964](https://github.com/vector-im/hydrogen-web/pull/964)
 - Peeking functionality [1037](https://github.com/vector-im/hydrogen-web/pull/1037) and [#7 on this fork](https://github.com/Automattic/hydrogen-web/pull/7)
 
+PRs that are meant to be contributed upstream but their base PR isn't merged are tracked by 
+[upstream-contribution-candidate](https://github.com/Automattic/hydrogen-web/labels/upstream-contribution-candidate)
+
