@@ -22,6 +22,7 @@ import {makeSyncWorker} from "./make-worker";
 import {
     StartSyncRequest,
     StartSyncResponse,
+    SyncChanges,
     SyncEvent,
     SyncRequestType,
     SyncStatusChanged
@@ -59,6 +60,7 @@ export class SyncProxy implements ISync {
         this._workerProxy = new WorkerProxy(makeSyncWorker(workerId) as SharedWorker);
         this._eventBus = new EventBus(workerId);
         this._eventBus.setListener(SyncEvent.StatusChanged, this.onStatusChanged.bind(this));
+        this._eventBus.setListener(SyncEvent.SyncChanges, this.onSyncChanges.bind(this));
     }
 
     get status(): ObservableValue<SyncStatus> {
@@ -97,5 +99,9 @@ export class SyncProxy implements ISync {
 
     private onStatusChanged(event: SyncStatusChanged): void {
         this._status.set(event.data.newValue);
+    }
+
+    private async onSyncChanges(event: SyncChanges): Promise<void> {
+        // TODO
     }
 }
