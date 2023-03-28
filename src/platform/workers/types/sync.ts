@@ -40,17 +40,19 @@ export interface SyncStatusChanged extends Event {
     }
 }
 
+export type SessionChanges = {
+    syncInfo: {
+        token: string,
+        filterId: string,
+    },
+    hasNewRoomKeys: boolean,
+    e2eeAccountChanges?: number,
+    deviceMessageDecryptionResults: DecryptionResult[]|null,
+}
+
 export interface SyncChanges extends Event {
     type: SyncEvent.SyncChanges;
     data: {
-        session: {
-            syncInfo: {
-                token: string,
-                filterId: string,
-            },
-            hasNewRoomKeys: boolean,
-            e2eeAccountChanges?: number,
-            deviceMessageDecryptionResults: DecryptionResult[]|null,
-        },
+        session: SessionChanges,
     }
 }

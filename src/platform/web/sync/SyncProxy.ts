@@ -102,6 +102,13 @@ export class SyncProxy implements ISync {
     }
 
     private async onSyncChanges(event: SyncChanges): Promise<void> {
-        // TODO
+        const sessionChanges = event.data.session;
+
+        await this._logger.run("sync changes", async log => {
+            await log.wrap("session", log => {
+                log.log({l: "changes", ...sessionChanges});
+                this._session.afterSync(sessionChanges, log);
+            });
+        });
     }
 }
