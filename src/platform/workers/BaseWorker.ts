@@ -3,7 +3,7 @@ import {RequestType, Request, Response} from "./types/base";
 declare const self;
 declare const WorkerGlobalScope;
 
-type RequestHandler = (request: Request, response: Response) => Promise<Response>;
+type RequestHandler = (request: Request) => Promise<Response>;
 type HandlerMap = Map<RequestType, RequestHandler>;
 
 export abstract class BaseWorker {
@@ -26,14 +26,12 @@ export abstract class BaseWorker {
     protected async handleRequest(request: Request): Promise<Response> {
         let response: Response = {request, data: {}};
 
-        const handler = this._handlers.get(request.type);
-        if (!handler) {
-            response.error = new Error(`No handler is registered for requests of type ${request.type}`);
-            return response;
-        }
-
         try {
-            response = await handler(request, response);
+            const handler = this._handlers.get(request.type);
+            if (!handler) {
+                throw `No handler is registered for requests of type ${request.type}`;
+            }
+            response = await handler(request);
         } catch (error) {
             response.error = error;
         }

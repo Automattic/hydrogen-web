@@ -11,7 +11,9 @@ export class SyncWorker extends SharedWorker {
         this.setHandler(SyncRequestType.StartSync, this.startSync.bind(this));
     }
 
-    async startSync(request: StartSyncRequest, response: StartSyncResponse): Promise<StartSyncResponse> {
+    async startSync(request: StartSyncRequest): Promise<StartSyncResponse> {
+        const response: StartSyncResponse = {request, data: {}};
+
         const event: SyncStatusChanged = {
             id: makeEventId(),
             type: SyncEvent.StatusChanged,
@@ -20,6 +22,7 @@ export class SyncWorker extends SharedWorker {
             }
         }
         this.broadcastEvent(event);
+
         return response;
     }
 
