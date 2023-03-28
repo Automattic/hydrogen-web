@@ -87,18 +87,22 @@ export class SyncWorker extends SharedWorker {
             eventBus: this._eventBus,
         })
 
+        this._sync.status.subscribe(this.onSyncStatusChanged.bind(this));
+
         await this._sync.start();
 
+        return response;
+    }
+
+    private onSyncStatusChanged() {
         const event: SyncStatusChanged = {
             id: makeEventId(),
             type: SyncEvent.StatusChanged,
             data: {
-                newValue: "Stopped",
+                newValue: this._sync?.status.get(),
             }
         }
         this.broadcastEvent(event);
-
-        return response;
     }
 
     broadcastEvent(event: Event) {

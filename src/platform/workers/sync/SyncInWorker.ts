@@ -1,8 +1,9 @@
-import {Sync} from "../../../matrix/Sync";
+import {Sync, SyncStatus} from "../../../matrix/Sync";
 import {Logger} from "../../../logging/Logger";
 import {HomeServerApi} from "../../../matrix/net/HomeServerApi";
 import {Session} from "../../../matrix/Session";
 import {Storage} from "../../../matrix/storage/idb/Storage";
+import {ObservableValue} from "../../../observable/value";
 
 type Options = {
     logger: Logger,
@@ -23,5 +24,9 @@ export class SyncInWorker extends Sync {
 
     async start() {
         return super.start();
+    }
+
+    get status(): ObservableValue<SyncStatus> {
+        return super.status;
     }
 }
