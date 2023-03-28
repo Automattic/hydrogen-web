@@ -29,9 +29,11 @@ import {
 import {WorkerProxy} from "../worker/WorkerProxy";
 import {EventBus} from "../worker/EventBus";
 import {makeRequestId} from "../../workers/types/base";
+import {Logger} from "../../../logging/Logger";
 
 type Options = {
     session: Session;
+    logger: Logger,
 }
 
 export class SyncProxy implements ISync {
@@ -39,11 +41,13 @@ export class SyncProxy implements ISync {
     private readonly _workerProxy: WorkerProxy;
     private readonly _eventBus: EventBus;
     private readonly _status: ObservableValue<SyncStatus> = new ObservableValue(SyncStatus.Stopped);
+    private readonly _logger: Logger;
     private _error: Error | null = null;
 
     constructor(options: Options) {
-        const {session} = options;
+        const {session, logger} = options;
         this._session = session;
+        this._logger = logger;
 
         const sessionId = this._session.sessionId;
         if (!sessionId) {
