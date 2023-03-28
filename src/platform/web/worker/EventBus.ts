@@ -19,12 +19,12 @@ export class EventBus {
         this._listeners.set(type, listener);
     }
 
-    onMessage(message: MessageEvent) {
+    async onMessage(message: MessageEvent) {
         const event = message.data as Event;
         const listener = this._listeners.get(event.type);
         if (!listener) {
             return;
         }
-        listener(event);
+        await listener(event);
     }
 }
