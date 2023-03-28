@@ -1,4 +1,11 @@
-import {Sync, SyncStatus} from "../../../matrix/Sync";
+import {
+    ArchivedRoomSyncProcessState,
+    InviteSyncProcessState,
+    RoomSyncProcessState,
+    SessionSyncProcessState,
+    Sync,
+    SyncStatus
+} from "../../../matrix/Sync";
 import {Logger} from "../../../logging/Logger";
 import {HomeServerApi} from "../../../matrix/net/HomeServerApi";
 import {Session} from "../../../matrix/Session";
@@ -28,5 +35,15 @@ export class SyncInWorker extends Sync {
 
     get status(): ObservableValue<SyncStatus> {
         return super.status;
+    }
+
+    _afterSync(
+        sessionState: SessionSyncProcessState,
+        inviteStates: InviteSyncProcessState[],
+        roomStates: RoomSyncProcessState[],
+        archivedRoomStates: ArchivedRoomSyncProcessState[],
+        log
+    ) {
+        super._afterSync(sessionState, inviteStates, roomStates, archivedRoomStates, log);
     }
 }
