@@ -14,16 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// TODO: Figure out how to get WebWorkers Typescript lib working. For now we just disable checks on the whole file.
-// @ts-nocheck
+// Vite doesn't currently support passing a runtime value to the `name` property in typescript.
+// This file exists solely to work around that limitation.
+// TODO: When vite addresses this, this code can be moved to SyncProxy.ts.
 
-// The empty export makes this a module. It can be removed once there's at least one import.
-export {}
-
-declare let self: SharedWorkerGlobalScope;
-
-self.onconnect = (event: MessageEvent) => {
-    const port = event.ports[0];
-    port.postMessage("hello from sync worker");
-    console.log("hello from sync worker");
+export function makeSyncWorker(name) {
+    return new SharedWorker(new URL("../../workers/sync/sync-worker", import.meta.url), {
+        /* @vite-ignore */
+        name: name,
+        type: "module",
+    });
 }

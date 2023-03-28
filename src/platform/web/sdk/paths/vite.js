@@ -1,7 +1,7 @@
 // @ts-ignore
 import _downloadSandboxPath from "../../assets/download-sandbox.html?url";
 // @ts-ignore
-import _workerPath from "../../worker/main.js?url";
+import _workerPath from "../../../workers/olm/main.js?url";
 // @ts-ignore
 import olmWasmPath from "@matrix-org/olm/olm.wasm?url";
 // @ts-ignore

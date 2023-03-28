@@ -41,7 +41,7 @@ export default defineConfig(({mode}) => {
             // important this comes before service worker
             // otherwise the manifest and the icons it refers to won't be cached
             injectWebManifest("assets/manifest.json"),
-            injectServiceWorker("./src/platform/web/sw.js", findUnhashedFileNamesFromBundle, {
+            injectServiceWorker("./src/platform/workers/service/sw.js", findUnhashedFileNamesFromBundle, {
                 // placeholders to replace at end of build by chunk name
                 index: {
                     DEFINE_GLOBAL_HASH: definePlaceholders.DEFINE_GLOBAL_HASH,

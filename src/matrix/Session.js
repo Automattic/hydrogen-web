@@ -122,6 +122,10 @@ export class Session {
         return this._hasSecretStorageKey;
     }
 
+    get sessionId() {
+        return this._sessionInfo.id;
+    }
+
     get deviceId() {
         return this._sessionInfo.deviceId;
     }

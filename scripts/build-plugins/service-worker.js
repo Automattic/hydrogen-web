@@ -66,7 +66,7 @@ function getBuildHash(hashedFileNames, unhashedFileContentMap) {
 const NON_PRECACHED_JS = [
     "hydrogen-legacy",
     "olm_legacy.js",
-     // most environments don't need the worker
+     // most environments don't need the olm worker.
     "main.js"
 ];
 
