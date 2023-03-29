@@ -49,6 +49,7 @@ import {SecretStorage} from "./ssss/SecretStorage";
 import {ObservableValue, RetainedObservableValue} from "../observable/value";
 import {CallHandler} from "./calls/CallHandler";
 import {RoomStateHandlerSet} from "./room/state/RoomStateHandlerSet";
+import {SendQueue} from "./room/sending/SendQueue";
 
 const PICKLE_KEY = "DEFAULT_KEY";
 const PUSHER_KEY = "pusher";
@@ -633,6 +634,7 @@ export class Session {
 
     /** @internal */
     createJoinedRoom(roomId, pendingEvents) {
+        const sendQueue = new SendQueue({roomId, storage: this._storage, hsApi: this._hsApi, pendingEvents});
         return new Room({
             roomId,
             getSyncToken: this._getSyncToken,
@@ -644,7 +646,8 @@ export class Session {
             user: this._user,
             createRoomEncryption: this._createRoomEncryption,
             platform: this._platform,
-            roomStateHandler: this._roomStateHandler
+            roomStateHandler: this._roomStateHandler,
+            sendQueue
         });
     }
 
