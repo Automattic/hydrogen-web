@@ -1,5 +1,12 @@
 import {SharedWorker} from "../SharedWorker";
-import {StartSyncRequest, StartSyncResponse, SyncEvent, SyncRequestType, SyncStatusChanged} from "../types/sync";
+import {
+    StartSyncRequest,
+    StartSyncResponse,
+    SyncEvent,
+    SyncRequestType,
+    SyncStatusChanged,
+    AddPendingEventRequest, AddPendingEventResponse
+} from "../types/sync";
 import {Event, makeEventId} from "../types/base";
 import {SyncPlatform} from "./SyncPlatform";
 import {Reconnector} from "../../../matrix/net/Reconnector";
@@ -60,6 +67,7 @@ export class SyncWorker extends SharedWorker {
         })
 
         this.setHandler(SyncRequestType.StartSync, this.startSync.bind(this));
+        this.setHandler(SyncRequestType.AddPendingEvent, this.addPendingEvent.bind(this));
     }
 
     async startSync(request: StartSyncRequest): Promise<StartSyncResponse> {
@@ -92,6 +100,24 @@ export class SyncWorker extends SharedWorker {
         await this._sync.start();
 
         return response;
+    }
+
+    async addPendingEvent(request: AddPendingEventRequest): Promise<AddPendingEventResponse> {
+        if (!this._session) {
+            throw `No sync is in progress`;
+        }
+
+        const pendingEvent = request.data.pendingEvent;
+        // @ts-ignore
+        const roomId = pendingEvent.roomId;
+
+        const sendQueue = this._session.sendQueuePool.getQueue(roomId);
+        if (!sendQueue) {
+            throw `Send queue for room with id ${roomId} was not found`;
+        }
+        sendQueue.addExistingPendingEvent(pendingEvent);
+
+        return {request, data: {}} as AddPendingEventResponse;
     }
 
     private onSyncStatusChanged() {

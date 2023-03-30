@@ -20,6 +20,8 @@ import {SyncStatus} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
 import {makeSyncWorker} from "./make-worker";
 import {
+    AddPendingEventRequest,
+    AddPendingEventResponse,
     StartSyncRequest,
     StartSyncResponse,
     SyncChanges,
@@ -31,6 +33,10 @@ import {WorkerProxy} from "../worker/WorkerProxy";
 import {EventBus} from "../worker/EventBus";
 import {makeRequestId} from "../../workers/types/base";
 import {Logger} from "../../../logging/Logger";
+import {ObservableMap} from "../../../observable";
+import {type Room} from "../../../matrix/room/Room";
+import {EventEntry} from "../../../matrix/room/timeline/entries/EventEntry";
+import {PendingEvent} from "../../../matrix/room/sending/PendingEvent";
 
 type Options = {
     session: Session;
@@ -61,6 +67,8 @@ export class SyncProxy implements ISync {
         this._eventBus = new EventBus(workerId);
         this._eventBus.setListener(SyncEvent.StatusChanged, this.onStatusChanged.bind(this));
         this._eventBus.setListener(SyncEvent.SyncChanges, this.onSyncChanges.bind(this));
+
+        this._session.sendQueuePool.on("pendingEvent", this.onPendingEvent.bind(this));
     }
 
     get status(): ObservableValue<SyncStatus> {
@@ -95,6 +103,23 @@ export class SyncProxy implements ISync {
 
     stop(): void {
         // TODO
+    }
+
+    // Notify worker of a pending event.
+    private async onPendingEvent(pendingEvent: PendingEvent) {
+        const {data} = pendingEvent;
+        const request: AddPendingEventRequest = {
+            id: makeRequestId(),
+            type: SyncRequestType.AddPendingEvent,
+            data: {
+                pendingEvent: data,
+            }
+        };
+
+        const response = await this._workerProxy.sendAndWaitForResponse(request) as AddPendingEventResponse;
+        if (response?.error) {
+            throw response.error;
+        }
     }
 
     private onStatusChanged(event: SyncStatusChanged): void {

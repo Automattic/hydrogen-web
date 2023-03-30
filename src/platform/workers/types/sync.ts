@@ -1,5 +1,5 @@
 import {Request, Response, Event} from "./base";
-import {DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
+import {type DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
 
 //
 // Requests/Responses
@@ -7,6 +7,7 @@ import {DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
 
 export enum SyncRequestType {
     StartSync = "StartSync",
+    AddPendingEvent = "AddPendingEvent",
 }
 
 export interface StartSyncRequest extends Request {
@@ -21,6 +22,17 @@ export interface StartSyncRequest extends Request {
 }
 export interface StartSyncResponse extends Response {
     request: StartSyncRequest;
+    data: {}
+}
+
+export interface AddPendingEventRequest extends Request {
+    type: SyncRequestType.AddPendingEvent;
+    data: {
+        pendingEvent: object, // TODO: Specify structure of this object.
+    }
+}
+export interface AddPendingEventResponse extends Response {
+    request: AddPendingEventRequest;
     data: {}
 }
 

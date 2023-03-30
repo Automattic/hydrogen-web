@@ -37,6 +37,10 @@ export class SendQueue extends EventEmitter {
         this._currentQueueIndex = 0;
     }
 
+    addExistingPendingEvent(eventData) {
+        this._pendingEvents.set(this._createPendingEvent(eventData));
+    }
+
     _createPendingEvent(data, attachments = null) {
         const pendingEvent = new PendingEvent({
             data,

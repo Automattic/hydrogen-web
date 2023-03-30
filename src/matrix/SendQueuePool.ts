@@ -28,4 +28,8 @@ export class SendQueuePool extends EventEmitter<any> {
         this._queues.set(roomId, sendQueue);
         return sendQueue;
     }
+
+    getQueue(roomId: RoomId): SendQueue | undefined {
+        return this._queues.get(roomId);
+    }
 }
