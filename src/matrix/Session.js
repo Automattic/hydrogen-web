@@ -49,14 +49,13 @@ import {SecretStorage} from "./ssss/SecretStorage";
 import {ObservableValue, RetainedObservableValue} from "../observable/value";
 import {CallHandler} from "./calls/CallHandler";
 import {RoomStateHandlerSet} from "./room/state/RoomStateHandlerSet";
-import {SendQueue} from "./room/sending/SendQueue";
 
 const PICKLE_KEY = "DEFAULT_KEY";
 const PUSHER_KEY = "pusher";
 
 export class Session {
     // sessionInfo contains deviceId, userId and homeserver
-    constructor({storage, hsApi, sessionInfo, olm, olmWorker, platform, mediaRepository, features}) {
+    constructor({storage, hsApi, sessionInfo, olm, olmWorker, platform, mediaRepository, features, sendQueuePool}) {
         this._platform = platform;
         this._storage = storage;
         this._hsApi = hsApi;
@@ -93,6 +92,7 @@ export class Session {
         this._keyBackup = new ObservableValue(undefined);
         this._crossSigning = undefined;
         this._observedRoomStatus = new Map();
+        this.sendQueuePool = sendQueuePool;
 
         if (olm) {
             this._olmUtil = new olm.Utility();
@@ -634,7 +634,7 @@ export class Session {
 
     /** @internal */
     createJoinedRoom(roomId, pendingEvents) {
-        const sendQueue = new SendQueue({roomId, storage: this._storage, hsApi: this._hsApi, pendingEvents});
+        const sendQueue = this.sendQueuePool.createQueue(roomId, pendingEvents);
         return new Room({
             roomId,
             getSyncToken: this._getSyncToken,

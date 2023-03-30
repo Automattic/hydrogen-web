@@ -8,6 +8,7 @@ import {MediaRepository} from "./net/MediaRepository";
 import {FeatureSet} from "../features";
 import type * as OlmNamespace from "@matrix-org/olm";
 import {OlmWorker} from "./e2ee/OlmWorker";
+import {SendQueuePool} from "./SendQueuePool";
 type Olm = typeof OlmNamespace;
 
 type Options = {
@@ -63,6 +64,8 @@ export class SessionFactory {
             platform: this._platform,
         });
 
+        const sendQueuePool = new SendQueuePool({storage, hsApi});
+
         const session = new Session({
             platform: this._platform,
             features: this._features,
@@ -72,6 +75,7 @@ export class SessionFactory {
             olm,
             olmWorker,
             mediaRepository,
+            sendQueuePool
         });
 
         return {
