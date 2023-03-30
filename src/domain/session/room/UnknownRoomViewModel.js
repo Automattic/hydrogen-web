@@ -38,6 +38,11 @@ export class UnknownRoomViewModel extends ViewModel {
             this._joinAllowed = isGuest ? this._guestJoinAllowed : true;
             this.emitChange('joinAllowed');
         });
+        this._closeUrl = this.urlRouter.urlUntilSegment("session");
+    }
+
+    get closeUrl() {
+        return this._closeUrl;
     }
 
     get error() {
