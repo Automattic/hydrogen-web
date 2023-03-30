@@ -20,9 +20,11 @@ import {PendingEvent, SendStatus} from "./PendingEvent.js";
 import {makeTxnId, isTxnId} from "../../common.js";
 import {REDACTION_TYPE} from "../common";
 import {getRelationFromContent, getRelationTarget, setRelationTarget, REACTION_TYPE, ANNOTATION_RELATION_TYPE} from "../timeline/relations.js";
+import {EventEmitter} from "../../../utils/EventEmitter";
 
-export class SendQueue {
+export class SendQueue extends EventEmitter {
     constructor({roomId, storage, hsApi, pendingEvents}) {
+        super();
         pendingEvents = pendingEvents || [];
         this._roomId = roomId;
         this._storage = storage;
@@ -231,6 +233,7 @@ export class SendQueue {
     async _enqueueEvent(eventType, content, attachments, relatedTxnId, relatedEventId, log) {
         const pendingEvent = await this._createAndStoreEvent(eventType, content, relatedTxnId, relatedEventId, attachments);
         this._pendingEvents.set(pendingEvent);
+        this.emit("pendingEvent", pendingEvent);
         log.set("queueIndex", pendingEvent.queueIndex);
         log.set("pendingEvents", this._pendingEvents.length);
         if (!this._isSending && !this._offline) {

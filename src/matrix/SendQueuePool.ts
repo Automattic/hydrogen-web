@@ -24,6 +24,7 @@ export class SendQueuePool extends EventEmitter<any> {
 
     createQueue(roomId: RoomId, pendingEvents: []): SendQueue {
         const sendQueue = new SendQueue({roomId, storage: this._storage, hsApi: this._hsApi, pendingEvents});
+        sendQueue.on("pendingEvent", event => this.emit("pendingEvent", event));
         this._queues.set(roomId, sendQueue);
         return sendQueue;
     }
