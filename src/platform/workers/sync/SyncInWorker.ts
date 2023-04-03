@@ -11,8 +11,9 @@ import {HomeServerApi} from "../../../matrix/net/HomeServerApi";
 import {Session} from "../../../matrix/Session";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {ObservableValue} from "../../../observable/value";
-import {SessionChanges, SyncChanges, SyncEvent} from "../types/sync";
+import {RoomChanges, SessionChanges, SyncChanges, SyncEvent} from "../types/sync";
 import {makeEventId} from "../types/base";
+import {serializeRoomChanges, serializeSessionChanges} from "./serialize";
 
 type Options = {
     logger: Logger,
@@ -47,18 +48,16 @@ export class SyncInWorker extends Sync {
         log
     ) {
         super._afterSync(sessionState, inviteStates, roomStates, archivedRoomStates, log);
-        this.sendSyncChangesEvent(
-            sessionState.changes
-        );
-    }
 
-    private sendSyncChangesEvent(sessionChanges: SessionChanges)
-    {
+        const sessionChanges = serializeSessionChanges(sessionState);
+        const roomsChanges = roomStates.map(roomState => serializeRoomChanges(roomState));
+
         const event: SyncChanges = {
             type: SyncEvent.SyncChanges,
             id: makeEventId(),
             data: {
                 session: sessionChanges,
+                rooms: roomsChanges,
             }
         }
         this._eventBus.postMessage(event);

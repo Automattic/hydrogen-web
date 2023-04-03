@@ -35,8 +35,8 @@ import {makeRequestId} from "../../workers/types/base";
 import {Logger} from "../../../logging/Logger";
 import {ObservableMap} from "../../../observable";
 import {type Room} from "../../../matrix/room/Room";
-import {EventEntry} from "../../../matrix/room/timeline/entries/EventEntry";
 import {PendingEvent} from "../../../matrix/room/sending/PendingEvent";
+import {deserializeRoomChanges, deserializeSessionChanges} from "../../workers/sync/serialize";
 
 type Options = {
     session: Session;
@@ -128,11 +128,25 @@ export class SyncProxy implements ISync {
 
     private async onSyncChanges(event: SyncChanges): Promise<void> {
         const sessionChanges = event.data.session;
+        const roomsChanges = event.data.rooms;
 
         await this._logger.run("sync changes", async log => {
             await log.wrap("session", log => {
                 log.log({l: "changes", ...sessionChanges});
-                this._session.afterSync(sessionChanges, log);
+                const deserializedSessionChanges = deserializeSessionChanges(sessionChanges);
+                this._session.afterSync(deserializedSessionChanges.changes, log);
+            });
+
+            await log.wrap("rooms", log => {
+                const rooms: ObservableMap<string, Room> = this._session.rooms;
+                for (const roomChanges of roomsChanges) {
+                    const {roomId, changes} = roomChanges;
+                    log.log({l: roomId, ...changes});
+
+                    const room = rooms.get(roomId);
+                    const deserializedRoomChanges = deserializeRoomChanges(room, roomChanges);
+                    room.afterSync(deserializedRoomChanges.changes, log);
+                }
             });
         });
     }

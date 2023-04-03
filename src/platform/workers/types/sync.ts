@@ -62,9 +62,33 @@ export type SessionChanges = {
     deviceMessageDecryptionResults: DecryptionResult[]|null,
 }
 
+export type RoomChanges = {
+    roomId: string,
+    changes: {
+        // TODO: Specify structure of below objects.
+        roomResponse: object,
+        newEntries: object[],
+        updatedEntries: object[],
+        memberChanges: Map<string, { member: object, previousMembership: string }>,
+        newLiveKey: {
+            fragmentId: number,
+            eventIndex: number,
+        },
+        summaryChanges: object,
+        heroChanges: object,
+        powerLevelsEvent: object,
+
+        // TODO from below here
+        // removedPendingEvents,
+        // roomEncryption,
+        // encryptionChanges,
+    }
+}
+
 export interface SyncChanges extends Event {
     type: SyncEvent.SyncChanges;
     data: {
         session: SessionChanges,
+        rooms: RoomChanges[],
     }
 }
