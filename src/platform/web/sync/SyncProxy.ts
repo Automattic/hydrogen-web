@@ -96,9 +96,6 @@ export class SyncProxy implements ISync {
         if (response?.error) {
             throw response.error;
         }
-
-        // TODO
-        console.log(response);
     }
 
     stop(): void {
