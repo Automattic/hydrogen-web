@@ -38,7 +38,7 @@ export class Reconnector {
     private readonly _createTimeMeasure: () => TimeMeasure;
     private readonly _onlineStatus: OnlineStatus;
     private readonly _state: ObservableValue<ConnectionStatus>;
-    private _isStarted = false;
+    private _isStarted: boolean;
     private _isReconnecting: boolean;
     private _versionsResponse?: VersionResponse;
     private _stateSince: TimeMeasure;
@@ -49,6 +49,7 @@ export class Reconnector {
         this._createTimeMeasure = createMeasure;
         // assume online, and do our thing when something fails
         this._state = new ObservableValue(ConnectionStatus.Online);
+        this._isStarted = false;
         this._isReconnecting = false;
     }
 
