@@ -28,6 +28,7 @@ export class SyncPlatform {
     }
 
     async loadOlm(): Promise<Olm> {
+        // Mangle the globals enough to make olm believe it is running in a browser.
         // @ts-ignore
         self.window = self;
         // @ts-ignore
