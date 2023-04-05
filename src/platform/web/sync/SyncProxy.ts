@@ -71,6 +71,10 @@ export class SyncProxy implements ISync {
             type: SyncRequestType.StartSync,
             data: {
                 sessionId: this._session.sessionId,
+                deviceId: this._session.deviceId,
+                userId: this._session.userId,
+                homeserver: this._session.homeserver,
+                accessToken: this._session.accessToken,
             }
         };
 

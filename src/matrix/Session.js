@@ -134,6 +134,14 @@ export class Session {
         return this._sessionInfo.userId;
     }
 
+    get homeserver() {
+        return this._sessionInfo.homeServer;
+    }
+
+    get accessToken() {
+        return this._sessionInfo.accessToken;
+    }
+
     get callHandler() {
         return this._callHandler;
     }

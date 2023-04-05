@@ -38,6 +38,7 @@ export class Reconnector {
     private readonly _createTimeMeasure: () => TimeMeasure;
     private readonly _onlineStatus: OnlineStatus;
     private readonly _state: ObservableValue<ConnectionStatus>;
+    private _isStarted: boolean;
     private _isReconnecting: boolean;
     private _versionsResponse?: VersionResponse;
     private _stateSince: TimeMeasure;
@@ -48,6 +49,7 @@ export class Reconnector {
         this._createTimeMeasure = createMeasure;
         // assume online, and do our thing when something fails
         this._state = new ObservableValue(ConnectionStatus.Online);
+        this._isStarted = false;
         this._isReconnecting = false;
     }
 
@@ -66,8 +68,24 @@ export class Reconnector {
         return 0;
     }
 
+    get isStarted(): boolean {
+        return this._isStarted;
+    }
+
+    start(): void {
+        this._isStarted = true;
+    }
+
+    stop(): void {
+        this._isStarted = false;
+    }
+
     async onRequestFailed(hsApi: HomeServerApi): Promise<void> {
-        if (!this._isReconnecting) {  
+        if (!this._isStarted) {
+            return;
+        }
+
+        if (!this._isReconnecting) {
             this._isReconnecting = true;
  
             const onlineStatusSubscription = this._onlineStatus && this._onlineStatus.subscribe(online => {
@@ -114,7 +132,7 @@ export class Reconnector {
         this._versionsResponse = undefined;
         this._retryDelay.reset();
 
-        while (!this._versionsResponse) {
+        while (this._isStarted && !this._versionsResponse) {
             try {
                 this._setState(ConnectionStatus.Reconnecting);
                 // use 30s timeout, as a tradeoff between not giving up
@@ -165,6 +183,7 @@ export function tests() {
             const onlineStatus = new ObservableValue(false);
             const retryDelay = new _ExponentialRetryDelay(clock.createTimeout);
             const reconnector = new Reconnector({retryDelay, onlineStatus, createMeasure});
+            reconnector.start();
             const {connectionStatus} = reconnector;
             const statuses: ConnectionStatus[] = [];
             const subscription = reconnector.connectionStatus.subscribe(s => {
@@ -190,6 +209,7 @@ export function tests() {
             const onlineStatus = new ObservableValue(false);
             const retryDelay = new _ExponentialRetryDelay(clock.createTimeout);
             const reconnector = new Reconnector({retryDelay, onlineStatus, createMeasure});
+            reconnector.start();
             const {connectionStatus} = reconnector;
             // @ts-ignore
             reconnector.onRequestFailed(createHsApiMock(1));

@@ -15,7 +15,19 @@ limitations under the License.
 */
 
 import {SyncWorker} from "./SyncWorker";
+import assetPaths from "../../web/sdk/paths/vite";
 
 declare const self;
 
-self.syncWorker = new SyncWorker();
+// Vite makes the paths relative (e.g. ./assets/olm.abc123.js) but we want the absolute path, so we strip the
+// leading `.`.
+// TODO: Fix this at vite level.
+const olmWasmJsPath = assetPaths.olm.wasmBundle.substring(1);
+const olmWasmPath = assetPaths.olm.wasm.substring(1);
+
+self.syncWorker = new SyncWorker({
+    assets: {
+        olmWasmJsPath: olmWasmJsPath,
+        olmWasmPath: olmWasmPath,
+    }
+});

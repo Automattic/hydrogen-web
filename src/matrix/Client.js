@@ -32,6 +32,8 @@ import {SSOLoginHelper} from "./login/SSOLoginHelper";
 import {getDehydratedDevice} from "./e2ee/Dehydration.js";
 import {Registration} from "./registration/Registration";
 import {FeatureSet} from "../features";
+import {SessionFactory} from "./SessionFactory";
+import {Storage} from "./storage/idb/Storage";
 
 export const LoadStatus = createEnum(
     "NotLoading",
@@ -70,6 +72,12 @@ export class Client {
         this._workerPromise = platform.loadOlmWorker();
         this._accountSetup = undefined;
         this._features = features;
+        this._reconnector = new Reconnector({
+            onlineStatus: this._platform.onlineStatus,
+            retryDelay: new ExponentialRetryDelay(this._platform.clock.createTimeout),
+            createMeasure: this._platform.clock.createMeasure
+        });
+        this._sessionFactory = new SessionFactory({platform, features, reconnector: this._reconnector});
     }
 
     createNewSessionId() {
@@ -88,11 +96,7 @@ export class Client {
         await this._platform.logger.run("load session", async log => {
             log.set("id", sessionId);
             try {
-                const sessionInfo = await this._platform.sessionInfoStorage.get(sessionId);
-                if (!sessionInfo) {
-                    throw new Error("Invalid session id: " + sessionId);
-                }
-                await this._loadSessionInfo(sessionInfo, null, log);
+                await this._loadSessionInfo(sessionId, null, log);
                 log.set("status", this._status.get());
             } catch (err) {
                 log.catch(err);
@@ -253,7 +257,7 @@ export class Client {
         // LoadStatus.Error in case of an error,
         // so separate try/catch
         try {
-            await this._loadSessionInfo(sessionInfo, dehydratedDevice, log);
+            await this._loadSessionInfo(id, dehydratedDevice, log);
             log.set("status", this._status.get());
         } catch (err) {
             log.catch(err);
@@ -264,53 +268,38 @@ export class Client {
         }
     }
 
-    async _loadSessionInfo(sessionInfo, dehydratedDevice, log) {
+    async _loadSessionInfo(sessionId, dehydratedDevice, log) {
         log.set("appVersion", this._platform.version);
-        const clock = this._platform.clock;
+
+        const sessionInfo = await this._platform.sessionInfoStorage.get(sessionId);
+        if (!sessionInfo) {
+            throw new Error("Invalid session id: " + sessionId);
+        }
+
         this._sessionStartedByReconnector = false;
         this._status.set(LoadStatus.Loading);
-        this._reconnector = new Reconnector({
-            onlineStatus: this._platform.onlineStatus,
-            retryDelay: new ExponentialRetryDelay(clock.createTimeout),
-            createMeasure: clock.createMeasure
-        });
-        const hsApi = new HomeServerApi({
-            homeserver: sessionInfo.homeServer,
-            accessToken: sessionInfo.accessToken,
-            request: this._platform.request,
-            reconnector: this._reconnector,
-        });
         this._sessionId = sessionInfo.id;
         this._storage = await this._platform.storageFactory.create(sessionInfo.id, log);
-        // no need to pass access token to session
-        const filteredSessionInfo = {
-            id: sessionInfo.id,
-            deviceId: sessionInfo.deviceId,
-            userId: sessionInfo.userId,
-            homeserver: sessionInfo.homeServer,
-        };
+
         const olm = await this._olmPromise;
         let olmWorker = null;
         if (this._workerPromise) {
             olmWorker = await this._workerPromise;
         }
-        this._requestScheduler = new RequestScheduler({hsApi, clock});
-        this._requestScheduler.start();
-        const mediaRepository = new MediaRepository({
-            homeserver: sessionInfo.homeServer,
-            platform: this._platform,
-        });
-        this._session = new Session({
+
+        this._reconnector.start();
+
+        const {session, scheduler} = this._sessionFactory.make({
             storage: this._storage,
-            sessionInfo: filteredSessionInfo,
-            hsApi: this._requestScheduler.hsApi,
             olm,
             olmWorker,
-            mediaRepository,
-            platform: this._platform,
-            features: this._features
+            sessionInfo,
         });
+        this._session = session;
+        this._requestScheduler = scheduler;
+        this._requestScheduler.start();
         await this._session.load(log);
+
         if (dehydratedDevice) {
             await log.wrap("dehydrateIdentity", log => this._session.dehydrateIdentity(dehydratedDevice, log));
             await this._session.setupDehydratedDevice(dehydratedDevice.key, log);
@@ -320,7 +309,7 @@ export class Client {
         }
 
         this._sync = this._platform.syncFactory.make({
-            scheduler: this._requestScheduler,
+            hsApi: this._requestScheduler.hsApi,
             storage: this._storage,
             session: this._session,
         });
@@ -349,7 +338,7 @@ export class Client {
         // started to session, so check first
         // to prevent an extra /versions request
         if (!this._sessionStartedByReconnector) {
-            const lastVersionsResponse = await hsApi.versions({timeout: 10000, log}).response();
+            const lastVersionsResponse = await this._requestScheduler.hsApi.versions({timeout: 10000, log}).response();
             if (this._isDisposed) {
                 return;
             }
@@ -452,7 +441,7 @@ export class Client {
     }
 
     get _isDisposed() {
-        return !this._reconnector;
+        return !this._reconnector.isStarted;
     }
 
     startLogout(sessionId) {
@@ -488,7 +477,7 @@ export class Client {
             this._reconnectSubscription();
             this._reconnectSubscription = null;
         }
-        this._reconnector = null;
+        this._reconnector.stop();
         if (this._requestScheduler) {
             this._requestScheduler.stop();
             this._requestScheduler = null;
