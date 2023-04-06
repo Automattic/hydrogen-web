@@ -37,8 +37,22 @@ export class SendQueue extends EventEmitter {
         this._currentQueueIndex = 0;
     }
 
+    // Called by the sync worker to add an event that has been sent by the main thread.
     addExistingPendingEvent(eventData) {
         this._pendingEvents.set(this._createPendingEvent(eventData));
+    }
+
+    // When sync is running in a worker, this function is called by the main thread to remove pending events, after the
+    // sync has removed them from storage.
+    removePendingEvents(eventsData) {
+        for (const event of eventsData) {
+            const idx = this._pendingEvents.array.findIndex(pe => pe.remoteId === event.remoteId);
+            if (idx !== -1) {
+                const pendingEvent = this._pendingEvents.get(idx);
+                this._pendingEvents.remove(idx);
+                pendingEvent.dispose();
+            }
+        }
     }
 
     _createPendingEvent(data, attachments = null) {
@@ -65,6 +79,7 @@ export class SendQueue extends EventEmitter {
                         try {
                             this._currentQueueIndex = pendingEvent.queueIndex;
                             await this._sendEvent(pendingEvent, log);
+                            this.emit("pendingEvent", pendingEvent);
                         } catch(err) {
                             if (err instanceof ConnectionError) {
                                 this._offline = true;
@@ -237,7 +252,6 @@ export class SendQueue extends EventEmitter {
     async _enqueueEvent(eventType, content, attachments, relatedTxnId, relatedEventId, log) {
         const pendingEvent = await this._createAndStoreEvent(eventType, content, relatedTxnId, relatedEventId, attachments);
         this._pendingEvents.set(pendingEvent);
-        this.emit("pendingEvent", pendingEvent);
         log.set("queueIndex", pendingEvent.queueIndex);
         log.set("pendingEvents", this._pendingEvents.length);
         if (!this._isSending && !this._offline) {

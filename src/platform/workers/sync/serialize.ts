@@ -4,6 +4,7 @@ import {EventEntry} from "../../../matrix/room/timeline/entries/EventEntry";
 import {MemberChange, RoomMember} from "../../../matrix/room/members/RoomMember";
 import {type DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
 import {EventKey} from "../../../matrix/room/timeline/EventKey";
+import {PendingEvent} from "../../../matrix/room/sending/PendingEvent";
 
 type InMemorySessionSyncState = {
     changes: {
@@ -28,6 +29,7 @@ type InMemoryRoomSyncState = {
         summaryChanges: object,
         heroChanges: object,
         powerLevelsEvent: object,
+        removedPendingEvents: PendingEvent[],
     }
 }
 
@@ -46,6 +48,7 @@ export function serializeRoomChanges(roomState: InMemoryRoomSyncState): RoomChan
     const {roomResponse, summaryChanges, heroChanges, powerLevelsEvent} = changes;
     const newEntries = changes.newEntries.map((entry: EventEntry) => entry.data);
     const updatedEntries = changes.updatedEntries.map((entry: EventEntry) => entry.data);
+    const removedPendingEvents = changes.removedPendingEvents.map((event: PendingEvent) => event.data);
 
     const memberChanges = new Map<string, { member: object, previousMembership: string }>;
     for (let [key, mc] of changes.memberChanges) {
@@ -69,13 +72,14 @@ export function serializeRoomChanges(roomState: InMemoryRoomSyncState): RoomChan
             summaryChanges,
             heroChanges,
             powerLevelsEvent,
+            removedPendingEvents,
         }
     }
 }
 
 export function deserializeRoomChanges(room: Room, roomChanges: RoomChanges): InMemoryRoomSyncState {
     const {changes} = roomChanges;
-    const {roomResponse, newEntries, updatedEntries, memberChanges, newLiveKey} = changes;
+    const {roomResponse, newEntries, updatedEntries, memberChanges, newLiveKey, removedPendingEvents} = changes;
 
     const deserializedNewEntries = newEntries.map(entry => new EventEntry(entry, room._fragmentIdComparer));
     const deserializedUpdatedEntries = updatedEntries.map(entry => new EventEntry(entry, room._fragmentIdComparer));
@@ -102,6 +106,7 @@ export function deserializeRoomChanges(room: Room, roomChanges: RoomChanges): In
             summaryChanges: deserializedSummaryChanges,
             heroChanges: deserializedHeroChanges,
             powerLevelsEvent: deserializedPowerLevelsEvent,
+            removedPendingEvents,
         }
     };
 }

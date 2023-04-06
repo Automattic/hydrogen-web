@@ -77,9 +77,9 @@ export type RoomChanges = {
         summaryChanges: object,
         heroChanges: object,
         powerLevelsEvent: object,
+        removedPendingEvents: object[],
 
         // TODO from below here
-        // removedPendingEvents,
         // roomEncryption,
         // encryptionChanges,
     }

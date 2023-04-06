@@ -54,6 +54,10 @@ export class Room extends BaseRoom {
         return false;
     }
 
+    get sendQueue() {
+        return this._sendQueue;
+    }
+
     async prepareSync(roomResponse, membership, newKeys, txn, log) {
         log.set("id", this.id);
         if (newKeys) {
