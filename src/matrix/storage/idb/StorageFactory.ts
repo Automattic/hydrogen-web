@@ -53,19 +53,25 @@ async function requestPersistedStorage(): Promise<boolean> {
 
 export class StorageFactory {
     private _serviceWorkerHandler?: ServiceWorkerHandler;
+    private _runSyncInWorker: boolean;
     private _idbFactory: IDBFactory;
     private _IDBKeyRange: typeof IDBKeyRange;
     private _localStorage: IDOMStorage;
 
-    constructor(serviceWorkerHandler?: ServiceWorkerHandler, idbFactory: IDBFactory = self.indexedDB, _IDBKeyRange = self.IDBKeyRange, localStorage: IDOMStorage = self.localStorage) {
+    constructor(serviceWorkerHandler?: ServiceWorkerHandler, runSyncInWorker: boolean = false, idbFactory: IDBFactory = self.indexedDB, _IDBKeyRange = self.IDBKeyRange, localStorage: IDOMStorage = self.localStorage) {
         this._serviceWorkerHandler = serviceWorkerHandler;
+        this._runSyncInWorker = runSyncInWorker;
         this._idbFactory = idbFactory;
         this._IDBKeyRange = _IDBKeyRange;
         this._localStorage = localStorage;
     }
 
     async create(sessionId: string, log: ILogItem): Promise<Storage> {
-        await this._serviceWorkerHandler?.preventConcurrentSessionAccess(sessionId);
+        // When sync is running in a worker, we do not need to prevent concurrent session access.
+        if (!this._runSyncInWorker) {
+            await this._serviceWorkerHandler?.preventConcurrentSessionAccess(sessionId);
+        }
+
         requestPersistedStorage().then(persisted => {
             // Firefox lies here though, and returns true even if the user denied the request
             if (!persisted) {

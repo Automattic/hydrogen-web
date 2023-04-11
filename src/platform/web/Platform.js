@@ -224,7 +224,7 @@ export class Platform {
                 }
 
                 this.syncFactory = new SyncFactory({logger: this.logger, runSyncInWorker: this.runSyncInWorker});
-                this.storageFactory = new StorageFactory(this._serviceWorkerHandler);
+                this.storageFactory = new StorageFactory(this._serviceWorkerHandler, this._runSyncInWorker);
             });
         } catch (err) {
             this._container.innerText = err.message;
