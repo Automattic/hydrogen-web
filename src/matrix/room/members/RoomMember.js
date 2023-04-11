@@ -71,6 +71,10 @@ export class RoomMember {
         });
     }
 
+    get data() {
+        return this._data;
+    }
+
     get membership() {
         return this._data.membership;
     }

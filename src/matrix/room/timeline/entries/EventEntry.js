@@ -44,6 +44,10 @@ export class EventEntry extends BaseEventEntry {
         this._contextEntry = other.contextEntry;
     }
 
+    get data() {
+        return this._eventEntry;
+    }
+
     get event() {
         return this._eventEntry.event;
     }

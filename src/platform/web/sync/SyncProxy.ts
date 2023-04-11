@@ -20,8 +20,11 @@ import {SyncStatus} from "../../../matrix/Sync";
 import {Session} from "../../../matrix/Session";
 import {makeSyncWorker} from "./make-worker";
 import {
+    AddPendingEventRequest,
+    AddPendingEventResponse,
     StartSyncRequest,
     StartSyncResponse,
+    SyncChanges,
     SyncEvent,
     SyncRequestType,
     SyncStatusChanged
@@ -29,9 +32,15 @@ import {
 import {WorkerProxy} from "../worker/WorkerProxy";
 import {EventBus} from "../worker/EventBus";
 import {makeRequestId} from "../../workers/types/base";
+import {Logger} from "../../../logging/Logger";
+import {ObservableMap} from "../../../observable";
+import {type Room} from "../../../matrix/room/Room";
+import {PendingEvent} from "../../../matrix/room/sending/PendingEvent";
+import {deserializeRoomChanges, deserializeSessionChanges} from "../../workers/sync/serialize";
 
 type Options = {
     session: Session;
+    logger: Logger,
 }
 
 export class SyncProxy implements ISync {
@@ -39,11 +48,13 @@ export class SyncProxy implements ISync {
     private readonly _workerProxy: WorkerProxy;
     private readonly _eventBus: EventBus;
     private readonly _status: ObservableValue<SyncStatus> = new ObservableValue(SyncStatus.Stopped);
+    private readonly _logger: Logger;
     private _error: Error | null = null;
 
     constructor(options: Options) {
-        const {session} = options;
+        const {session, logger} = options;
         this._session = session;
+        this._logger = logger;
 
         const sessionId = this._session.sessionId;
         if (!sessionId) {
@@ -55,6 +66,9 @@ export class SyncProxy implements ISync {
         this._workerProxy = new WorkerProxy(makeSyncWorker(workerId) as SharedWorker);
         this._eventBus = new EventBus(workerId);
         this._eventBus.setListener(SyncEvent.StatusChanged, this.onStatusChanged.bind(this));
+        this._eventBus.setListener(SyncEvent.SyncChanges, this.onSyncChanges.bind(this));
+
+        this._session.sendQueuePool.on("pendingEvent", this.onPendingEvent.bind(this));
     }
 
     get status(): ObservableValue<SyncStatus> {
@@ -82,16 +96,60 @@ export class SyncProxy implements ISync {
         if (response?.error) {
             throw response.error;
         }
-
-        // TODO
-        console.log(response);
     }
 
     stop(): void {
         // TODO
     }
 
+    // Notify worker of a pending event.
+    private async onPendingEvent(pendingEvent: PendingEvent) {
+        const {data} = pendingEvent;
+        const request: AddPendingEventRequest = {
+            id: makeRequestId(),
+            type: SyncRequestType.AddPendingEvent,
+            data: {
+                pendingEvent: data,
+            }
+        };
+
+        const response = await this._workerProxy.sendAndWaitForResponse(request) as AddPendingEventResponse;
+        if (response?.error) {
+            throw response.error;
+        }
+    }
+
     private onStatusChanged(event: SyncStatusChanged): void {
         this._status.set(event.data.newValue);
+    }
+
+    private async onSyncChanges(event: SyncChanges): Promise<void> {
+        const sessionChanges = event.data.session;
+        const roomsChanges = event.data.rooms;
+
+        await this._logger.run("sync changes", async log => {
+            await log.wrap("session", log => {
+                log.log({l: "changes", ...sessionChanges});
+                const deserializedSessionChanges = deserializeSessionChanges(sessionChanges);
+                this._session.afterSync(deserializedSessionChanges.changes, log);
+            });
+
+            await log.wrap("rooms", log => {
+                const rooms: ObservableMap<string, Room> = this._session.rooms;
+                for (const roomChanges of roomsChanges) {
+                    const {roomId, changes} = roomChanges;
+                    log.log({l: roomId, ...changes});
+
+                    const room = rooms.get(roomId);
+                    const deserializedRoomChanges = deserializeRoomChanges(room, roomChanges);
+
+                    room.sendQueue.removePendingEvents(deserializedRoomChanges.changes.removedPendingEvents);
+                    // We already remove pending events, so we don't want room.afterSync() to try to remove them again.
+                    // So we set the removedPendingEvents array to empty.
+                    deserializedRoomChanges.changes.removedPendingEvents = [];
+                    room.afterSync(deserializedRoomChanges.changes, log);
+                }
+            });
+        });
     }
 }
