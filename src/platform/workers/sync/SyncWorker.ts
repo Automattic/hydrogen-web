@@ -1,5 +1,12 @@
 import {SharedWorker} from "../SharedWorker";
-import {StartSyncRequest, StartSyncResponse, SyncEvent, SyncRequestType, SyncStatusChanged} from "../types/sync";
+import {
+    StartSyncRequest,
+    StartSyncResponse,
+    SyncEvent,
+    SyncRequestType,
+    SyncStatusChanged,
+    AddPendingEventRequest, AddPendingEventResponse
+} from "../types/sync";
 import {Event, makeEventId} from "../types/base";
 import {SyncPlatform} from "./SyncPlatform";
 import {Reconnector} from "../../../matrix/net/Reconnector";
@@ -13,7 +20,7 @@ import {Logger} from "../../../logging/Logger";
 import {ConsoleReporter} from "../../../logging/ConsoleReporter";
 import {Storage} from "../../../matrix/storage/idb/Storage";
 import {RequestScheduler} from "../../../matrix/net/RequestScheduler";
-import {Sync} from "../../../matrix/Sync";
+import {SyncInWorker} from "./SyncInWorker";
 
 type Assets = {
     olmWasmJsPath: string,
@@ -36,7 +43,7 @@ export class SyncWorker extends SharedWorker {
     private _session?: Session;
     private _storage?: Storage;
     private _scheduler?: RequestScheduler;
-    private _sync?: Sync;
+    private _sync?: SyncInWorker;
 
     constructor(options: Options) {
         super();
@@ -60,6 +67,7 @@ export class SyncWorker extends SharedWorker {
         })
 
         this.setHandler(SyncRequestType.StartSync, this.startSync.bind(this));
+        this.setHandler(SyncRequestType.AddPendingEvent, this.addPendingEvent.bind(this));
     }
 
     async startSync(request: StartSyncRequest): Promise<StartSyncResponse> {
@@ -79,25 +87,48 @@ export class SyncWorker extends SharedWorker {
         this._storage = storage;
         this._scheduler = scheduler;
 
-        this._sync = new Sync({
+        this._sync = new SyncInWorker({
             logger: this._logger,
             hsApi: this._scheduler.hsApi,
             session: this._session,
             storage: this._storage,
+            eventBus: this._eventBus,
         })
 
-        this._sync.start();
+        this._sync.status.subscribe(this.onSyncStatusChanged.bind(this));
 
+        await this._sync.start();
+
+        return response;
+    }
+
+    async addPendingEvent(request: AddPendingEventRequest): Promise<AddPendingEventResponse> {
+        if (!this._session) {
+            throw `No sync is in progress`;
+        }
+
+        const pendingEvent = request.data.pendingEvent;
+        // @ts-ignore
+        const roomId = pendingEvent.roomId;
+
+        const sendQueue = this._session.sendQueuePool.getQueue(roomId);
+        if (!sendQueue) {
+            throw `Send queue for room with id ${roomId} was not found`;
+        }
+        sendQueue.addExistingPendingEvent(pendingEvent);
+
+        return {request, data: {}} as AddPendingEventResponse;
+    }
+
+    private onSyncStatusChanged() {
         const event: SyncStatusChanged = {
             id: makeEventId(),
             type: SyncEvent.StatusChanged,
             data: {
-                newValue: "Stopped",
+                newValue: this._sync?.status.get(),
             }
         }
         this.broadcastEvent(event);
-
-        return response;
     }
 
     broadcastEvent(event: Event) {
