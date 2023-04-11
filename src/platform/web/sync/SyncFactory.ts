@@ -59,7 +59,7 @@ export class SyncFactory {
         }
 
         if (runSyncInWorker) {
-            return new SyncProxy({session, logger: this._logger});
+            return new SyncProxy({session});
         }
 
         return new Sync({

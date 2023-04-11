@@ -20,11 +20,9 @@ import {PendingEvent, SendStatus} from "./PendingEvent.js";
 import {makeTxnId, isTxnId} from "../../common.js";
 import {REDACTION_TYPE} from "../common";
 import {getRelationFromContent, getRelationTarget, setRelationTarget, REACTION_TYPE, ANNOTATION_RELATION_TYPE} from "../timeline/relations.js";
-import {EventEmitter} from "../../../utils/EventEmitter";
 
-export class SendQueue extends EventEmitter {
+export class SendQueue {
     constructor({roomId, storage, hsApi, pendingEvents}) {
-        super();
         pendingEvents = pendingEvents || [];
         this._roomId = roomId;
         this._storage = storage;
@@ -35,24 +33,6 @@ export class SendQueue extends EventEmitter {
         this._offline = false;
         this._roomEncryption = null;
         this._currentQueueIndex = 0;
-    }
-
-    // Called by the sync worker to add an event that has been sent by the main thread.
-    addExistingPendingEvent(eventData) {
-        this._pendingEvents.set(this._createPendingEvent(eventData));
-    }
-
-    // When sync is running in a worker, this function is called by the main thread to remove pending events, after the
-    // sync has removed them from storage.
-    removePendingEvents(eventsData) {
-        for (const event of eventsData) {
-            const idx = this._pendingEvents.array.findIndex(pe => pe.remoteId === event.remoteId);
-            if (idx !== -1) {
-                const pendingEvent = this._pendingEvents.get(idx);
-                this._pendingEvents.remove(idx);
-                pendingEvent.dispose();
-            }
-        }
     }
 
     _createPendingEvent(data, attachments = null) {
@@ -79,7 +59,6 @@ export class SendQueue extends EventEmitter {
                         try {
                             this._currentQueueIndex = pendingEvent.queueIndex;
                             await this._sendEvent(pendingEvent, log);
-                            this.emit("pendingEvent", pendingEvent);
                         } catch(err) {
                             if (err instanceof ConnectionError) {
                                 this._offline = true;

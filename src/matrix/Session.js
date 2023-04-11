@@ -55,7 +55,7 @@ const PUSHER_KEY = "pusher";
 
 export class Session {
     // sessionInfo contains deviceId, userId and homeserver
-    constructor({storage, hsApi, sessionInfo, olm, olmWorker, platform, mediaRepository, features, sendQueuePool}) {
+    constructor({storage, hsApi, sessionInfo, olm, olmWorker, platform, mediaRepository, features}) {
         this._platform = platform;
         this._storage = storage;
         this._hsApi = hsApi;
@@ -92,7 +92,6 @@ export class Session {
         this._keyBackup = new ObservableValue(undefined);
         this._crossSigning = undefined;
         this._observedRoomStatus = new Map();
-        this.sendQueuePool = sendQueuePool;
 
         if (olm) {
             this._olmUtil = new olm.Utility();
@@ -634,7 +633,6 @@ export class Session {
 
     /** @internal */
     createJoinedRoom(roomId, pendingEvents) {
-        const sendQueue = this.sendQueuePool.createQueue(roomId, pendingEvents);
         return new Room({
             roomId,
             getSyncToken: this._getSyncToken,
@@ -646,8 +644,7 @@ export class Session {
             user: this._user,
             createRoomEncryption: this._createRoomEncryption,
             platform: this._platform,
-            roomStateHandler: this._roomStateHandler,
-            sendQueue
+            roomStateHandler: this._roomStateHandler
         });
     }
 

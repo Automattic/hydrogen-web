@@ -1,5 +1,4 @@
 import {Request, Response, Event} from "./base";
-import {type DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
 
 //
 // Requests/Responses
@@ -7,7 +6,6 @@ import {type DecryptionResult} from "../../../matrix/e2ee/DecryptionResult";
 
 export enum SyncRequestType {
     StartSync = "StartSync",
-    AddPendingEvent = "AddPendingEvent",
 }
 
 export interface StartSyncRequest extends Request {
@@ -25,70 +23,17 @@ export interface StartSyncResponse extends Response {
     data: {}
 }
 
-export interface AddPendingEventRequest extends Request {
-    type: SyncRequestType.AddPendingEvent;
-    data: {
-        pendingEvent: object, // TODO: Specify structure of this object.
-    }
-}
-export interface AddPendingEventResponse extends Response {
-    request: AddPendingEventRequest;
-    data: {}
-}
-
 //
 // Events
 //
 
 export enum SyncEvent {
     StatusChanged = "StatusChanged",
-    SyncChanges = "SyncChanges",
 }
 
 export interface SyncStatusChanged extends Event {
     type: SyncEvent.StatusChanged;
     data: {
         newValue: string,
-    }
-}
-
-export type SessionChanges = {
-    syncInfo: {
-        token: string,
-        filterId: string,
-    },
-    hasNewRoomKeys: boolean,
-    e2eeAccountChanges?: number,
-    deviceMessageDecryptionResults: DecryptionResult[]|null,
-}
-
-export type RoomChanges = {
-    roomId: string,
-    changes: {
-        // TODO: Specify structure of below objects.
-        roomResponse: object,
-        newEntries: object[],
-        updatedEntries: object[],
-        memberChanges: Map<string, { member: object, previousMembership: string }>,
-        newLiveKey: {
-            fragmentId: number,
-            eventIndex: number,
-        },
-        summaryChanges: object,
-        heroChanges: object,
-        powerLevelsEvent: object,
-        removedPendingEvents: object[],
-
-        // TODO from below here
-        // roomEncryption,
-        // encryptionChanges,
-    }
-}
-
-export interface SyncChanges extends Event {
-    type: SyncEvent.SyncChanges;
-    data: {
-        session: SessionChanges,
-        rooms: RoomChanges[],
     }
 }

@@ -32,7 +32,8 @@ export class Room extends BaseRoom {
     constructor(options) {
         super(options);
         this._roomStateHandler = options.roomStateHandler;
-        this._sendQueue = options.sendQueue;
+        // TODO: pass pendingEvents to start like pendingOperations?
+        const {pendingEvents} = options;
         const relationWriter = new RelationWriter({
             roomId: this.id,
             fragmentIdComparer: this._fragmentIdComparer,
@@ -44,6 +45,7 @@ export class Room extends BaseRoom {
             relationWriter,
             memberWriter: new MemberWriter(this.id)
         });
+        this._sendQueue = new SendQueue({roomId: this.id, storage: this._storage, hsApi: this._hsApi, pendingEvents});
     }
 
     _setEncryption(roomEncryption) {
@@ -52,10 +54,6 @@ export class Room extends BaseRoom {
             return true;
         }
         return false;
-    }
-
-    get sendQueue() {
-        return this._sendQueue;
     }
 
     async prepareSync(roomResponse, membership, newKeys, txn, log) {

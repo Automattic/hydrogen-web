@@ -452,7 +452,7 @@ export class Sync {
     }
 }
 
-export class SessionSyncProcessState {
+class SessionSyncProcessState {
     constructor() {
         this.lock = null;
         this.preparation = null;
@@ -464,7 +464,7 @@ export class SessionSyncProcessState {
     }
 }
 
-export class RoomSyncProcessState {
+class RoomSyncProcessState {
     constructor(room, isNewRoom, roomResponse, membership) {
         this.room = room;
         this.isNewRoom = isNewRoom;
@@ -492,7 +492,7 @@ export class RoomSyncProcessState {
 }
 
 
-export class ArchivedRoomSyncProcessState {
+class ArchivedRoomSyncProcessState {
     constructor(archivedRoom, roomState, roomResponse, membership, isInitialSync) {
         this.archivedRoom = archivedRoom;
         this.roomState = roomState;
@@ -515,7 +515,7 @@ export class ArchivedRoomSyncProcessState {
     }
 }
 
-export class InviteSyncProcessState {
+class InviteSyncProcessState {
     constructor(invite, isNewInvite, roomResponse, membership) {
         this.invite = invite;
         this.isNewInvite = isNewInvite;
