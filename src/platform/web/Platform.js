@@ -173,6 +173,11 @@ export class Platform {
         this.mediaDevices = new MediaDevicesWrapper(navigator.mediaDevices);
         this.webRTC = new DOMWebRTC();
         this._themeLoader = import.meta.env.DEV? null: new ThemeLoader(this);
+        this._runSyncInWorker = undefined;
+    }
+
+    get runSyncInWorker() {
+        return this._runSyncInWorker;
     }
 
     async init() {
@@ -207,8 +212,18 @@ export class Platform {
                     log.log({ l: "Active theme", name: themeName, variant: themeVariant });
                     await this._themeLoader.setTheme(themeName, themeVariant, log);
                 }
+
                 this.features = await FeatureSet.load(this.settingsStorage);
-                this.syncFactory = new SyncFactory({logger: this.logger, features: this.features});
+                this._runSyncInWorker = this.features.sameSessionInMultipleTabs;
+                if (typeof SharedWorker === "undefined") {
+                    this._runSyncInWorker = false;
+                }
+                if (!window.WebAssembly) {
+                    // Sync worker currently only supports Olm through Wasm.
+                    this._runSyncInWorker = false;
+                }
+
+                this.syncFactory = new SyncFactory({logger: this.logger, runSyncInWorker: this.runSyncInWorker});
                 this.storageFactory = new StorageFactory(this._serviceWorkerHandler);
             });
         } catch (err) {

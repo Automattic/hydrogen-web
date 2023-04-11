@@ -26,7 +26,7 @@ import {HomeServerApi} from "../../../matrix/net/HomeServerApi";
 
 type Options = {
     logger: Logger;
-    features: FeatureSet;
+    runSyncInWorker: boolean;
 }
 
 type MakeOptions = {
@@ -37,28 +37,18 @@ type MakeOptions = {
 
 export class SyncFactory {
     private readonly _logger: Logger;
-    private readonly _features: FeatureSet;
+    private readonly _runSyncInWorker: boolean;
 
     constructor(options: Options) {
-        const {logger, features} = options;
+        const {logger, runSyncInWorker} = options;
         this._logger = logger;
-        this._features = features;
+        this._runSyncInWorker = runSyncInWorker;
     }
 
     make(options: MakeOptions): ISync {
         const {hsApi, storage, session} = options;
-        let runSyncInWorker = this._features.sameSessionInMultipleTabs;
 
-        if (typeof SharedWorker === "undefined") {
-            runSyncInWorker = false;
-        }
-
-        if (!window.WebAssembly) {
-            // Sync worker currently only supports Olm through Wasm.
-            runSyncInWorker = false;
-        }
-
-        if (runSyncInWorker) {
+        if (this._runSyncInWorker) {
             return new SyncProxy({session, logger: this._logger});
         }
 
