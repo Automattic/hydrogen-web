@@ -155,7 +155,6 @@ export class Platform {
         if(this._assetPaths.olm) {
             this.crypto = new Crypto(cryptoExtras);
         }
-        this.storageFactory = new StorageFactory(this._serviceWorkerHandler);
         this.sessionInfoStorage = new SessionInfoStorage("hydrogen_sessions_v1");
         this.estimateStorageUsage = estimateStorageUsage;
         if (typeof fetch === "function") {
@@ -210,6 +209,7 @@ export class Platform {
                 }
                 this.features = await FeatureSet.load(this.settingsStorage);
                 this.syncFactory = new SyncFactory({logger: this.logger, features: this.features});
+                this.storageFactory = new StorageFactory(this._serviceWorkerHandler);
             });
         } catch (err) {
             this._container.innerText = err.message;
