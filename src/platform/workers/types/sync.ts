@@ -22,7 +22,9 @@ export interface StartSyncRequest extends Request {
 }
 export interface StartSyncResponse extends Response {
     request: StartSyncRequest;
-    data: {}
+    data: {
+        syncStatus: string,
+    }
 }
 
 export interface AddPendingEventRequest extends Request {

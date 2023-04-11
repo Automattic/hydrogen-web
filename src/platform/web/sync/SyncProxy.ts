@@ -93,6 +93,7 @@ export class SyncProxy implements ISync {
         };
 
         const response = await this._workerProxy.sendAndWaitForResponse(request) as StartSyncResponse;
+        this._status.set(response.data.syncStatus);
         if (response?.error) {
             throw response.error;
         }
