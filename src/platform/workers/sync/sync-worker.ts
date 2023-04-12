@@ -19,15 +19,14 @@ import assetPaths from "../../web/sdk/paths/vite";
 
 declare const self;
 
-// Vite makes the paths relative (e.g. ./assets/olm.abc123.js) but we want the absolute path, so we strip the
-// leading `.`.
-// TODO: Fix this at vite level.
-const olmWasmJsPath = assetPaths.olm.wasmBundle.substring(1);
-const olmWasmPath = assetPaths.olm.wasm.substring(1);
-
 self.syncWorker = new SyncWorker({
     assets: {
-        olmWasmJsPath: olmWasmJsPath,
-        olmWasmPath: olmWasmPath,
+        olmWasmJsPath: assetPath(assetPaths.olm.wasmBundle),
+        olmWasmPath: assetPath(assetPaths.olm.wasm),
     }
 });
+
+function assetPath(path) {
+    // sync-worker is in the /assets directory, as are all assets, so we load assets relative to that directory.
+    return path.replace(/(\.\/)?assets\//, "./");
+}
