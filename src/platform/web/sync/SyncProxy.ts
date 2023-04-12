@@ -127,6 +127,13 @@ export class SyncProxy implements ISync {
     private async onSyncChanges(event: SyncChanges): Promise<void> {
         const sessionChanges = event.data.session;
         const roomsChanges = event.data.rooms;
+        const isInitialSync = event.data.syncStatus === SyncStatus.InitialSync;
+
+        if (isInitialSync) {
+            // For the initial sync, instead of handling sync changes, we simply reload.
+            location.reload();
+            return;
+        }
 
         await this._logger.run("sync changes", async log => {
             await log.wrap("session", log => {
@@ -145,7 +152,7 @@ export class SyncProxy implements ISync {
                     const deserializedRoomChanges = deserializeRoomChanges(room, roomChanges);
 
                     room.sendQueue.removePendingEvents(deserializedRoomChanges.changes.removedPendingEvents);
-                    // We already remove pending events, so we don't want room.afterSync() to try to remove them again.
+                    // We already removed pending events, so we don't want room.afterSync() to try to remove them again.
                     // So we set the removedPendingEvents array to empty.
                     deserializedRoomChanges.changes.removedPendingEvents = [];
                     room.afterSync(deserializedRoomChanges.changes, log);

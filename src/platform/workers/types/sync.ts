@@ -90,6 +90,7 @@ export type RoomChanges = {
 export interface SyncChanges extends Event {
     type: SyncEvent.SyncChanges;
     data: {
+        syncStatus: string,
         session: SessionChanges,
         rooms: RoomChanges[],
     }
