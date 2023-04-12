@@ -149,6 +149,9 @@ export class SyncProxy implements ISync {
                     log.log({l: roomId, ...changes});
 
                     const room = rooms.get(roomId);
+                    if (!room) {
+                        continue;
+                    }
                     const deserializedRoomChanges = deserializeRoomChanges(room, roomChanges);
 
                     room.sendQueue.removePendingEvents(deserializedRoomChanges.changes.removedPendingEvents);
