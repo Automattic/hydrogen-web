@@ -71,7 +71,7 @@ export class SyncWorker extends SharedWorker {
     }
 
     async startSync(request: StartSyncRequest): Promise<StartSyncResponse> {
-        const response: StartSyncResponse = {request, data: {}};
+        const response: StartSyncResponse = {request, data: { syncStatus: this._sync?.status.get()}};
         if (this._sync) {
             return response;
         }
@@ -98,6 +98,7 @@ export class SyncWorker extends SharedWorker {
         this._sync.status.subscribe(this.onSyncStatusChanged.bind(this));
 
         await this._sync.start();
+        response.data.syncStatus = this._sync.status.get();
 
         return response;
     }

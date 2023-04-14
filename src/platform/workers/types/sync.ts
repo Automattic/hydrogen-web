@@ -22,7 +22,9 @@ export interface StartSyncRequest extends Request {
 }
 export interface StartSyncResponse extends Response {
     request: StartSyncRequest;
-    data: {}
+    data: {
+        syncStatus: string,
+    }
 }
 
 export interface AddPendingEventRequest extends Request {
@@ -88,6 +90,7 @@ export type RoomChanges = {
 export interface SyncChanges extends Event {
     type: SyncEvent.SyncChanges;
     data: {
+        syncStatus: string,
         session: SessionChanges,
         rooms: RoomChanges[],
     }

@@ -56,6 +56,7 @@ export class SyncInWorker extends Sync {
             type: SyncEvent.SyncChanges,
             id: makeEventId(),
             data: {
+                syncStatus: this.status.get(),
                 session: sessionChanges,
                 rooms: roomsChanges,
             }

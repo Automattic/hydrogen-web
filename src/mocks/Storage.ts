@@ -23,7 +23,7 @@ import {openDatabase, CreateObjectStore} from "../matrix/storage/idb/utils";
 export async function createMockStorage(): Promise<Storage> {
     const idbFactory = await createMockIDBFactory();
     const FDBKeyRange = await getMockIDBKeyRange();
-    return new StorageFactory(null as any, idbFactory, FDBKeyRange, new MockLocalStorage()).create("1", nullLogger.item);
+    return new StorageFactory(null as any, false, idbFactory, FDBKeyRange, new MockLocalStorage()).create("1", nullLogger.item);
 }
 
 // don't import fake-indexeddb until it's safe to assume we're actually in a unit test,

@@ -50,7 +50,7 @@ export class WorkerProxy {
         const request = response.request;
         const ongoingRequest = this._requests.get(request.id);
         if (!ongoingRequest) {
-            throw `Request with id ${request.id} was not found`;
+            return;
         }
 
         this._requests.delete(request.id);
