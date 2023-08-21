@@ -16,13 +16,22 @@ limitations under the License.
 
 import {TemplateView} from "../../general/TemplateView";
 import {spinner} from "../../common.js";
+import {Menu} from "../../general/Menu.js";
+import {Popup} from "../../general/Popup.js";
 
 export class UnknownRoomView extends TemplateView {
     render(t, vm) {
-        return t.main({className: "UnknownRoomView middle"}, [
-            t.div({className: "UnknownRoomView_header middle-header"}, [
+        return t.main({className: "RoomView UnknownRoomView middle"}, [
+            t.div({className: "UnknownRoomView_header RoomHeader middle-header"}, [
                 t.a({className: "button-utility close-middle", href: vm.closeUrl, title: vm.i18n`Cancel room join`}),
-                t.h2(vm.i18n`Join room`),
+                t.div({className: "room-description"},[
+                    t.h2(vm.i18n`Join room`),
+                ]),
+                t.button({
+                    className: "button-utility room-options",
+                    "aria-label":vm.i18n`Room options`,
+                    onClick: evt => this._toggleOptionsMenu(evt,vm)
+                })
             ]),
             t.div({className: "UnknownRoomView_body centered-column"}, [
                 t.div({className: "UnknownRoomView_container"}, [
@@ -45,5 +54,18 @@ export class UnknownRoomView extends TemplateView {
                 ])
             ])
         ]);
+    }
+
+    _toggleOptionsMenu(evt,vm) {
+        if (super._optionsPopup && super._optionsPopup.isOpen) {
+            super._optionsPopup.close();
+        } else {
+            const optionsPopup = new Popup(new Menu([
+                Menu.option(vm.i18n`Settings`, () => vm.navigation.push("settings"))
+            ]));
+            optionsPopup.trackInTemplateView(this);
+            optionsPopup.showRelativeTo(evt.target, 10);
+            super._optionsPopup = optionsPopup;
+        }
     }
 }
